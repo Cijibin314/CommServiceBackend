@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const {usersModel} = require('./models');
+require("./sendEmail")
 //const oAuth2Client = require("./getEmailToken")
 require("dotenv").config();
 
@@ -12,7 +13,7 @@ app.use(express.json());
 app.use(cors());
 
 // Connect to MongoDB
-mongoose.connect(process.env.CONNECTIONSTRING)
+mongoose.connect(process.env.CONNECTION_STRING)
 .then(() => {
   console.log("Connected to MongoDB");
 })
