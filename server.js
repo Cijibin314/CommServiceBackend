@@ -1,8 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const {usersModel} = require('./models');
-require("./sendEmail")
+const {usersModel} = require('./mongoDB/models/user');
+// require("./google/sendEmail")
+// require("./google/addDrawingToDocs")
+// require("./google/docs")
+// require("./google/drawings")
+// require("./google/getLinks")
+// require("./google/oAuth2Client")
 //const oAuth2Client = require("./getEmailToken")
 require("dotenv").config();
 
@@ -18,7 +23,6 @@ mongoose.connect(process.env.CONNECTION_STRING)
   console.log("Connected to MongoDB");
 })
 .catch((err) => console.error("MongoDB connection error:", err));
-
 //handle conection. Simply testing purposes
 //Set up endpoints
 app.get('/api/getUser/:username',(req,res)=>{
@@ -27,6 +31,17 @@ app.get('/api/getUser/:username',(req,res)=>{
       res.status(200);res.send(result)
     }).catch(err=>res.send(err));
 })
+
+app.get('/api/receiveDrawingUpdate/', (req, res)=>{
+  console.log("Drawing just changed")
+})
+let num = 0;
+app.post('/api/receiveDrawingUpdate/', (req, res)=>{
+  console.log("Drawing just changed post: " + num)
+  num++
+})
+
+
 app.post('/api/addActivityForm', (req,res)=>{
     const username = req.body["userame"]
     const activity = req.body["activity"]
@@ -38,8 +53,6 @@ app.post('/api/addActivityPdf', (req,res)=>{
 app.post('/api/addUser', (req,res)=>{
 
 })
-
-
 
 
 // app.get('/oauth2callback', async (req, res) => {
@@ -60,7 +73,7 @@ app.post('/api/addUser', (req,res)=>{
 //     }
 //   });
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
