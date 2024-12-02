@@ -8,6 +8,6 @@ const fields = {
   hours: Number,
   activity: Object
 }
-const collection = ""
-let usersModel = new Model(collectionName, fields)
-module.exports = {usersModel};
+const collectionName = "Users"
+let CsersModel = new Model(collectionName, fields).makeModel()
+module.exports = {CsersModel};

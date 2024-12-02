@@ -7,8 +7,8 @@ class Model{
         this.fields = fields
     }
     makeModel(){
-        const schema = new Schema(fields, { collection: this.collectionName});
-        newModel = createModel(this.collectionName, schema);
+        const schema = new Schema(this.fields, { collection: this.collectionName});
+        let newModel = model(this.collectionName, schema);
         return newModel
     }
 }
