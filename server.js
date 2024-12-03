@@ -1,29 +1,29 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const globalVars = require('./globalVars')
 const cors = require('cors');
-const {usersModel} = require('./mongoDB/models/user');
-// require("./google/sendEmail")
-// require("./google/addDrawingToDocs")
-// require("./google/docs")
-// require("./google/drawings")
-// require("./google/getLinks")
-// require("./google/oAuth2Client")
-//const oAuth2Client = require("./getEmailToken")
+require("./mongoDB/channels")
 require("dotenv").config();
 
 const app = express();
 
 // Middleware
+async function checkIfConnected(req, res, next) {
+  if(globalVars.userConnection && globalVars.channelConnection && globalVars.database){
+    next();
+  }else{
+    console.log("Not connected to mongodb")
+    res.status(460).json({message: 'User not connected'})
+  }
+}
 app.use(express.json());
 app.use(cors());
+app.use(checkIfConnected)
 
 //handle conection. Simply testing purposes
 //Set up endpoints
 app.get('/api/getUser/:username',(req,res)=>{
     const username = req.params.username
-    usersModel.findOne({username: username}).exec().then((result)=>{
-      res.status(200);res.send(result)
-    }).catch(err=>res.send(err));
+    res.status(200).send(username)
 })
 
 app.get('/api/receiveDrawingUpdate/', (req, res)=>{
@@ -47,27 +47,8 @@ app.post('/api/addActivityPdf', (req,res)=>{
 app.post('/api/addUser', (req,res)=>{
 
 })
-
-
-// app.get('/oauth2callback', async (req, res) => {
-//     const code = req.query.code;
-  
-//     if (code) {
-//       try {
-//         const { tokens } = await oAuth2Client.getToken(code);
-//         oAuth2Client.setCredentials(tokens);
-//         res.send('Authorization successful! You can close this tab.');
-//         console.log('Tokens received:', tokens);
-//       } catch (err) {
-//         console.error('Error exchanging code for tokens:', err.response?.data || err.message);
-//         res.send(`Error during authorization: ${err.message}`);
-//       }
-//     } else {
-//       res.send('No code provided');
-//     }
-//   });
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
