@@ -1,2 +1,2 @@
-let database, channelConnection, userConnection;
-module.exports = {database, channelConnection, userConnection}
+let database, userConnection, channelConnection, oAuth2Client;
+module.exports = {database, userConnection, channelConnection, oAuth2Client};

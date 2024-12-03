@@ -18,7 +18,7 @@ async function connect(){
     return [client, channelConnection, userConnection]
 }
 connect().then((arr)=>{
-    console.log("Arr: " + arr)
+    console.log("Connected to MongoDB!")
     globleVars.database = arr[0];
     globleVars.userConnection = arr[1];
     globleVars.channelConnection = arr[2];})

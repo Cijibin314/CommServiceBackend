@@ -1,4 +1,4 @@
-const {channelConnection} = require('./connection')
+const {channelConnection} = require('../globalVars')
 async function addChannelToDatabase(followId, channelName){
     const doc = {"followId": followId, "channelName": channelName};
     await channelConnection.insertOne(doc);

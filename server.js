@@ -7,17 +7,18 @@ require("dotenv").config();
 const app = express();
 
 // Middleware
-async function checkIfConnected(req, res, next) {
+async function checkForRequirements(req, res, next) {
   if(globalVars.userConnection && globalVars.channelConnection && globalVars.database){
     next();
   }else{
     console.log("Not connected to mongodb")
     res.status(460).json({message: 'User not connected'})
   }
+  
 }
 app.use(express.json());
 app.use(cors());
-app.use(checkIfConnected)
+app.use(checkForRequirements)
 
 //handle conection. Simply testing purposes
 //Set up endpoints

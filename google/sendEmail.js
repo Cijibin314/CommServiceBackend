@@ -1,6 +1,6 @@
 require("dotenv").config();
 const { google } = require('googleapis');
-const {oAuth2Client} = require('./oAuth2Client');
+const {oAuth2Client} = require('../globalVars');
 const {generateShareableLink} = require('./getLinks')
 // Define sendEmail function
 async function sendEmail(to, subject, text) {
