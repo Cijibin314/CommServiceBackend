@@ -1,14 +1,14 @@
 require("dotenv").config();
 const { google } = require('googleapis');
-const globalVars = require('../globalVars')
+const {oAuth2Client} = require('../globalVars')
 // Initialize the OAuth2 client
-const oAuth2Client = new google.auth.OAuth2(
+const oAuth2ClientLocal = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.CLIENT_SECRET,
   process.env.REDIRECT_URI
 );
-oAuth2Client.setCredentials({
+oAuth2ClientLocal.setCredentials({
   access_token: process.env.ACCESS_TOKEN,
   refresh_token: process.env.REFRESH_TOKEN,
 })
-globalVars.oAuth2Client = oAuth2Client;
+oAuth2Client.setVal(oAuth2ClientLocal);

@@ -1,7 +1,6 @@
 const { MongoClient, ServerApiVersion } = require("mongodb");
 require('dotenv').config()
-const globleVars = require('../globalVars')
-let database, channelConnection, userConnection;
+const globleVars = require('../globalVars.js')
 async function connect(){
     const client = new MongoClient(process.env.CONNECTION_STRING,  {
         serverApi: {
@@ -12,13 +11,15 @@ async function connect(){
     }
     );
     await client.connect()
-    database = client.db("CommServiceData");
-    channelConnection = database.collection("Channels");
-    userConnection = database.collection("Users");
-    return [client, channelConnection, userConnection]
+    
+    const database = client.db("CommServiceData");
+    const channelConnection = database.collection("Channels");
+    const userConnection = database.collection("Users");
+
+    globleVars.database.setVal(database);
+    globleVars.userConnection.setVal(userConnection);
+    globleVars.channelConnection.setVal(channelConnection);
 }
 connect().then((arr)=>{
     console.log("Connected to MongoDB!")
-    globleVars.database = arr[0];
-    globleVars.userConnection = arr[1];
-    globleVars.channelConnection = arr[2];})
+})

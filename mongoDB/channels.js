@@ -1,6 +1,14 @@
 const {channelConnection} = require('../globalVars')
-async function addChannelToDatabase(followId, channelName){
-    const doc = {"followId": followId, "channelName": channelName};
-    await channelConnection.insertOne(doc);
+async function addChannel(channelId, fileId, channelName){
+    const doc = {"channelI": channelId, "fileId": fileId, "channelName": channelName};
+    await channelConnection.getVal().insertOne(doc);
 }
-//addChannelToDatabase("myFollowId", "myChannelName");
+async function getChannelId(channelName){
+    const channel = await channelConnection.getVal().findOne({"channelName": channelName});
+    return channel["channelId"]
+}
+async function getFileId(){
+    const channel = await channelConnection.getVal().findOne({"channelName": channelName});
+    return channel["fildId"]
+}
+module.exports = {addChannel, getChannelId, getFileId};

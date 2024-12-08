@@ -1,9 +1,13 @@
 const express = require('express');
 const globalVars = require('./globalVars')
 const cors = require('cors');
-require("./mongoDB/channels")
+//Files
+require('./mongoDB/mongoDBLoader')
+console.log("Loaded MongoDB Files")
+require('./google/googleLoader')
+console.log("Loaded Google Files")
+//Setup
 require("dotenv").config();
-
 const app = express();
 
 // Middleware

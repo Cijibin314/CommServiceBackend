@@ -1,8 +1,9 @@
-const {oAuth2Client} = require('../globalVars')
+let {oAuth2Client} = require('../globalVars')
+oAuth2Client = oAuth2Client.getVal()
 const { google } = require('googleapis');
 const drive = google.drive({ version: 'v3', auth: oAuth2Client });
 const { v4: uuidv4 } = require('uuid');
-
+const {addChannle, getChannelId} = require('../mongoDB/channels')
 // google.drive('v3').channels.stop({
 //   channelId: 'unique-channel-id'
 // });
@@ -10,7 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 
 //rerurns channel id
 //Sets it up so that when the drawing is changes, the endpoint of the server gets called
-async function watchChanges(drawingFileId) {
+async function watchChanges(drawingFileId, watcherName) {
     const channelId = 'unique-channel-id-' + uuidv4()
     const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000
     const channel = {
@@ -32,10 +33,12 @@ async function watchChanges(drawingFileId) {
       console.error('Error setting up change notification:', error);
     }
   }
-// drive.channels.stop({
-//     requestBody: {
-//       id: "unique-channel-id-135fe280-6802-4b5c-bfff-df963f564dd8",  // The channel's unique ID
-//       resourceId: "NgwNK7xk-s11-hxbWW4lqolYGPo",  // The file or resource ID
-//     },
-//   }).then(res=>console.log(res.data + " was stopped"))
+async function stopChannel(channelId, resourceId){
+  drive.channels.stop({
+    requestBody: {
+      "id": channelId,  // The channel's unique ID
+      "resourceId": resourceId,  // The file or resource ID
+    },
+  }).then(res=>console.log(res.data + " was stopped")).catch(e=>console.lof("Error stoppeing channel: " + e))
+}
 //watchChanges("1OoVcEYvfgN7-7Nf7GL4x7HE27QNqJsFDXKgrhbCZhfo").then(res=>console.log(res));

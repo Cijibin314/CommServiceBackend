@@ -1,4 +1,5 @@
-const {oAuth2Client} = require('../globalVars')
+let {oAuth2Client} = require('../globalVars')
+oAuth2Client = oAuth2Client.getVal()
 const { google } = require('googleapis');
 const drive = google.drive({ version: 'v3', auth: oAuth2Client });
 
