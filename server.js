@@ -6,6 +6,8 @@ require('./mongoDB/mongoDBLoader')
 console.log("Loaded MongoDB Files")
 require('./google/googleLoader')
 console.log("Loaded Google Files")
+const {getChannelName} = require('./mongoDB/channels')
+const {handleDrawingUpdate} = require('./google/channels')
 //Setup
 require("dotenv").config();
 const app = express();
@@ -31,13 +33,38 @@ app.get('/api/getUser/:username',(req,res)=>{
     res.status(200).send(username)
 })
 
-app.get('/api/receiveDrawingUpdate/', (req, res)=>{
-  console.log("Drawing just changed")
+app.get('/api/receiveDrawingUpdate/:channelName', (req, res)=>{
+  console.log("Drawing just changed from channel: " + req.params.channelName)
 })
 let num = 0;
-app.post('/api/receiveDrawingUpdate/', (req, res)=>{
-  console.log("Drawing just changed post: " + num)
-  num++
+app.post('/api/receiveDrawingUpdate/:channelName', async (req, res)=>{
+  const channelId = req.header("X-Goog-Channel-Id");
+  const channelName = await getChannelName(channelId)
+  if(channelName){
+    console.log("_______")
+    console.log(`Notification received for Channel: ${channelName}`);
+    const resourceState = req.header("X-Goog-Resource-State");
+    // **Handle Different Notification Types**
+    switch(resourceState){
+      case "change":
+        console.log("File content or metadata was changed.")
+        break;
+      case "update":
+        console.log("File content was updated.")
+        handleDrawingUpdate(channelName)
+        break;
+      case "sync":
+        console.log("Can be ignored")
+        break;
+      default:
+        console.log("Unhandled notification type:", resourceState)
+    }
+    // Respond with HTTP 200 to acknowledge receipt
+    res.sendStatus(200);
+  }
+  else{
+    res.sendStatus(200)
+  }
 })
 
 
@@ -57,3 +84,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+console.log("End of server.js file :)")
