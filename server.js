@@ -2,10 +2,10 @@ const express = require('express');
 const globalVars = require('./globalVars')
 const cors = require('cors');
 //Files
+console.log("Loading MongoDB Files")
 require('./mongoDB/mongoDBLoader')
-console.log("Loaded MongoDB Files")
+console.log("Loading Google Files");
 require('./google/googleLoader')
-console.log("Loaded Google Files")
 const {getChannelName} = require('./mongoDB/channels')
 const {handleDrawingUpdate} = require('./google/channels')
 //Setup
@@ -40,6 +40,7 @@ let num = 0;
 app.post('/api/receiveDrawingUpdate/:channelName', async (req, res)=>{
   const channelId = req.header("X-Goog-Channel-Id");
   const channelName = await getChannelName(channelId)
+  console.log("Update Received")
   if(channelName){
     console.log("_______")
     console.log(`Notification received for Channel: ${channelName}`);
@@ -63,7 +64,7 @@ app.post('/api/receiveDrawingUpdate/:channelName', async (req, res)=>{
     res.sendStatus(200);
   }
   else{
-    res.sendStatus(200)
+    res.sendStatus(202)
   }
 })
 

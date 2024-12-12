@@ -1,3 +1,6 @@
 require('./connection')
+console.log("*__")
 require('./users')
+console.log("**_")
 require('./channels')
+console.log("***")

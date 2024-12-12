@@ -1,4 +1,9 @@
+console.log("*____")
 require('./oAuth2Client.js');
+console.log("**___")
 require('./channels.js')
+console.log("***__")
 require('./drawings.js')
+console.log("****_")
 require('./sendEmail.js')
+console.log("*****")
