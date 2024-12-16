@@ -86,6 +86,7 @@ async function insertDrawingByIndex(docId, imageUrl, index) {
     extractText(content);
 //console.log("Full Text: ", fullText);
     // Find the index of the target text
+    //27 is to account for the offset
     const index = fullText.indexOf(textToFind) + 27 + textToFind.length;
     console.log(`Index of "${textToFind}":`, index);
     return index;
@@ -94,12 +95,38 @@ async function insertDrawingByIndex(docId, imageUrl, index) {
     console.error('Error finding text index:', error.message);
   }
 }
+async function insertTextByIndex(docId, text, index) {
+  try{
+    await docs.documents.batchUpdate({
+      documentId: docId,
+      requestBody: {
+        requests: [
+          {
+            insertText: {
+              location: { index: index },
+              text: text,
+            },
+          },
+        ],
+      },
+    });
+
+    console.log(`Inserted text "${text}" at index ${index}`);
+  } catch (error) {
+    console.error('Error inserting text:', error.message);
+  }
+}
 //signerRole HAS to be either "Parent" or "Supervisor"
 async function insertDrawing(docId, imageurl, signerRole){
   const index = await findTextIndex(docId, `Signature of ${signerRole}:`);
   insertDrawingByIndex(docId, imageurl, index);
+  const indexForDate = index + 7; //1 + "Date:".length + 1= 7
+  const date = new Date().toISOString().split('T')[0];
+  console.log("Date: " + date)
+  insertTextByIndex(docId, date, indexForDate);
 }
 exportAndUploadImage("1tgw7pl89KjODKqkvXqhqRL9-EAHXmAx_xxgCNv40bf0").then((imgUrl)=>{
     console.log("Url: " + imgUrl)
-    insertDrawing("1qA7EVNkqVXTPTlyI9lNoWbDcfoRe8N1_nL_PkCtCOss", imgUrl, "Supervisor")
+    insertDrawing("1qA7EVNkqVXTPTlyI9lNoWbDcfoRe8N1_nL_PkCtCOss", imgUrl, "Parent")
 })
+module.exports = {insertDrawing}
