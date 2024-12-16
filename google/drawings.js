@@ -30,8 +30,13 @@ async function createDrawing(drawingName) {
     }
 }
 
-async function deleteDrawing(drawingId) {
+async function deleteDrawing(imageUrl) {
     try {
+      console.log("Trying to delete drawing: " + imageUrl);
+      const startIndex = 31;
+      const endIndex = imageUrl.length - 16;
+      const drawingId = imageUrl.slice(startIndex, endIndex);
+      console.log("Deleting drawing with ID: " + drawingId);
         // Perform the delete operation
         await drive.files.delete({
             fileId: drawingId,
@@ -43,39 +48,51 @@ async function deleteDrawing(drawingId) {
     }
 }
 
+//Common error with this function: If you get a 401 error, then you need to re-authenticate
 async function exportAndUploadImage(fileId) {
-    const newFileName = 'unique-drawing' + uuidv4()
-    try {
-      // Export the file as PNG
-      const exportUrl = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=image/png`;
-      const response = await axios.get(exportUrl, {
-        headers: { Authorization: `Bearer ${oAuth2Client.credentials.access_token}` },
-        responseType: 'stream',
-      });
-  
-      // Upload the file to the exports folder
-      const fileMetadata = {
-        name: `${newFileName}.png`,
-        parents: ['1z3jvfNat1oVAmiH4CaKU8lwrxstlV_Bs'], // Exports folder ID
-      };
-      const media = {
-        mimeType: 'image/png',
-        body: response.data,
-      };
-  
-      const uploadResponse = await drive.files.create({
-        resource: fileMetadata,
-        media: media,
-        fields: 'id, webViewLink, webContentLink',
-      });
-  
-      console.log('File uploaded:', uploadResponse.data);
-      newId = uploadResponse.data.id;
-      return newId;
-  
-    } catch (error) {
-      console.error('Error exporting and uploading image:', error.message);
-    }
-  }
-exportAndUploadImage("1tgw7pl89KjODKqkvXqhqRL9-EAHXmAx_xxgCNv40bf0")
+  const newFileName = 'unique-drawing' + uuidv4();
+  try {
+    // Export the file as PNG
+    const exportUrl = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=image/png`;
+    const response = await axios.get(exportUrl, {
+      headers: { Authorization: `Bearer ${oAuth2Client.credentials.access_token}` },
+      responseType: 'stream',
+    });
 
+    // Upload the file to the exports folder
+    const fileMetadata = {
+      name: `${newFileName}.png`,
+      parents: ['1z3jvfNat1oVAmiH4CaKU8lwrxstlV_Bs'], // Exports folder ID
+    };
+    const media = {
+      mimeType: 'image/png',
+      body: response.data,
+    };
+
+    const uploadResponse = await drive.files.create({
+      resource: fileMetadata,
+      media: media,
+      fields: 'id, webViewLink, webContentLink',
+    });
+
+    console.log('File uploaded:', uploadResponse.data);
+    const newId = uploadResponse.data.id;
+    const newUrl = uploadResponse.data.webContentLink;
+
+    // Set file permissions
+    await drive.permissions.create({
+      fileId: newId,
+      requestBody: {
+        role: 'reader',
+        type: 'anyone', // Allows anyone with the link to access
+      },
+    });
+
+    return newUrl;
+
+  } catch (error) {
+    console.error('Error exporting and uploading image:', error.response?.data || error.message);
+  }
+}
+//exportAndUploadImage("1tgw7pl89KjODKqkvXqhqRL9-EAHXmAx_xxgCNv40bf0").then((url)=>console.log(url))
+module.exports = {exportAndUploadImage, deleteDrawing}
