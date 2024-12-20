@@ -55,9 +55,9 @@ async function insertDrawingByIndex(docId, imageUrl, index) {
       console.error('Error inserting drawing:', error.message);
     }
   }
+  //Returns the LAST index of the first occurence of the text
   async function findTextIndex(docId, textToFind) {
   try {
-    const docs = google.docs({ version: 'v1', auth: oAuth2Client });
 
     // Fetch document content
     const doc = await docs.documents.get({ documentId: docId });
@@ -84,10 +84,10 @@ async function insertDrawingByIndex(docId, imageUrl, index) {
       });
     }
     extractText(content);
-//console.log("Full Text: ", fullText);
     // Find the index of the target text
     //27 is to account for the offset
-    const index = fullText.indexOf(textToFind) + 27 + textToFind.length;
+    //console.log("Full Text: ", fullText);
+    const index = fullText.indexOf(textToFind) + textToFind.length;
     console.log(`Index of "${textToFind}":`, index);
     return index;
 
@@ -118,15 +118,27 @@ async function insertTextByIndex(docId, text, index) {
 }
 //signerRole HAS to be either "Parent" or "Supervisor"
 async function insertDrawing(docId, imageurl, signerRole){
-  const index = await findTextIndex(docId, `Signature of ${signerRole}:`);
+  const index = await findTextIndex(docId, `Signature of ${signerRole}: `);
   insertDrawingByIndex(docId, imageurl, index);
-  const indexForDate = index + 7; //1 + "Date:".length + 1= 7
+  const indexForDate = index + 7; //1 + "Date: ".length + 1= 7
   const date = new Date().toISOString().split('T')[0];
   console.log("Date: " + date)
   insertTextByIndex(docId, date, indexForDate);
 }
-exportAndUploadImage("1tgw7pl89KjODKqkvXqhqRL9-EAHXmAx_xxgCNv40bf0").then((imgUrl)=>{
-    console.log("Url: " + imgUrl)
-    insertDrawing("1qA7EVNkqVXTPTlyI9lNoWbDcfoRe8N1_nL_PkCtCOss", imgUrl, "Parent")
-})
-module.exports = {insertDrawing}
+async function insertSupervisorData(docId, obj){
+  console.log("Inserting supervisor data: " + obj)
+  await insertTextByIndex(docId, "<<<"+"h"+">>>", 151)
+  // //Name
+  // let prompt = "Signature of Supervisor: "//"Print Name of Supervisor: "
+  // const nIndex = await findTextIndex(docId, prompt)+prompt.length;
+  // await insertTextByIndex(docId, "<<<"+obj["Name"]+">>>", nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
+  // // //Email
+  // prompt = "Email of Supervisor: "
+  // const eIndex = await findTextIndex(docId, prompt)+prompt.length;
+  // await insertTextByIndex(docId, "<<<"+obj["Email"]+">>>", eIndex);
+  // //Phone
+  // prompt = "Phone of Supervisor: "
+  // const pIndex = await findTextIndex(docId, prompt)+prompt.length;
+  // await insertTextByIndex(docId, "<<<"+obj["Phone"]+">>>", pIndex);
+}
+module.exports = {insertDrawing, insertSupervisorData}

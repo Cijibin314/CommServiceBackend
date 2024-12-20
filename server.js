@@ -8,6 +8,7 @@ console.log("Loading Google Files");
 require('./google/googleLoader')
 const {getChannelName} = require('./mongoDB/channels')
 const {handleDrawingUpdate} = require('./google/channels')
+const {insertSupervisorData} = require('./google/docs')
 //Setup
 require("dotenv").config();
 const app = express();
@@ -80,8 +81,18 @@ app.post('/api/addActivityPdf', (req,res)=>{
 app.post('/api/addUser', (req,res)=>{
 
 })
+app.put('/api/formSubmitted', (req,res)=>{
+  const payload = req.body;
+  console.log('Received form submission:', payload);
+  const docId = "1qA7EVNkqVXTPTlyI9lNoWbDcfoRe8N1_nL_PkCtCOss"
+  insertSupervisorData(docId, payload);
+  res.status(200).json({
+    message: 'Form submitted successfullyyyy!',
+    receivedData: payload
+  });
+})
 // Start server
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
