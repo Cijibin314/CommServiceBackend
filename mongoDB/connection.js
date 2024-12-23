@@ -21,8 +21,6 @@ async function connect(){
     globleVars.userConnection.setVal(userConnection);
     globleVars.channelConnection.setVal(channelConnection);
     globleVars.studentFormConnection.setVal(studentFormsConnection);
-    console.log("Set value for channel :" + JSON.stringify(channelConnection))
-    console.log("Set value for student form: " + JSON.stringify(studentFormsConnection))
 }
 connect().then((arr)=>{
     console.log("Connected to MongoDB!")

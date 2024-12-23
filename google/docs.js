@@ -1,12 +1,21 @@
 let {oAuth2Client} = require('../globalVars')
-oAuth2Client = oAuth2Client.getVal()
 const { google } = require('googleapis');
-const drive = google.drive({ version: 'v3', auth: oAuth2Client });
+let drive, docs
 const {exportAndUploadImage, deleteDrawing} = require('./drawings')
-const docs = google.docs({ version: "v1", auth: oAuth2Client });
+
+let first = true;
+function load(){
+  if(first){//first time only
+    first = false;
+    oAuth2Client = oAuth2Client.getVal();
+    drive = google.drive({ version: 'v3', auth: oAuth2Client });
+    docs = google.docs({ version: "v1", auth: oAuth2Client });
+  }
+}
 // Function to create a copy of a document and place it in a folder
 //Returns the new documetn id
 async function makeNewDocument(newTitle) {
+  await load()
     try {
         // Create a copy of the source document
         const response = await drive.files.copy({
@@ -26,6 +35,7 @@ async function makeNewDocument(newTitle) {
     }
 }
 async function insertDrawingByIndex(docId, imageUrl, index) {
+  await load()
     try {
       // Fallback for size (use fixed size or approximate dimensions)
       const width = 50;   // Use a fixed width or assume a reasonable value
@@ -57,6 +67,7 @@ async function insertDrawingByIndex(docId, imageUrl, index) {
   }
 //Returns the index of where to append after the textToFind
 async function insertTextByIndex(docId, text, index) {
+  await load()
   try{
     await docs.documents.batchUpdate({
       documentId: docId,
@@ -78,6 +89,7 @@ async function insertTextByIndex(docId, text, index) {
   }
 }
 async function findTextIndex(docId, textToFind){
+  await load()
   const doc = await docs.documents.get({ documentId: docId });
   const content = doc.data.body.content;
   for(let i = 1; i < content.length; i++){
@@ -101,10 +113,10 @@ async function findTextIndex(docId, textToFind){
           const startIndex = cell.content[0].startIndex;
           for(const element of elements){
             const text = element.textRun.content;
-            console.log("Text: " + text)
+            //console.log("Text: " + text)
             if(text.includes(textToFind)){
-              console.log("StartIndex: " + startIndex)
-              console.log("Index: " + (startIndex+textToFind.length))
+             // console.log("StartIndex: " + startIndex)
+             // console.log("Index: " + (startIndex+textToFind.length))
               return startIndex + textToFind.length;
             }
           }
@@ -115,15 +127,17 @@ async function findTextIndex(docId, textToFind){
   return -1;
 }
 //signerRole HAS to be either "Parent" or "Supervisor"
-async function insertDrawing(docId, imageurl, signerRole){
-  const index = await findTextIndex(docId, `Signature of ${signerRole}: `);
-  insertDrawingByIndex(docId, imageurl, index);
-  const indexForDate = index + 7; //1 + "Date: ".length + 1= 7
-  const date = new Date().toISOString().split('T')[0];
-  console.log("Date: " + date)
-  insertTextByIndex(docId, date, indexForDate);
-}
+// async function insertDrawing(docId, imageurl, signerRole){
+//   await load()
+//   const index = await findTextIndex(docId, `Signature of ${signerRole}: `);
+//   insertDrawingByIndex(docId, imageurl, index);
+//   const indexForDate = index + 7; //1 + "Date: ".length + 1= 7
+//   const date = new Date().toISOString().split('T')[0];
+//   console.log("Date: " + date)
+//   insertTextByIndex(docId, date, indexForDate);
+// }
 async function insertSupervisorData(docId, obj){
+  await load()
   console.log("Inserting supervisor data: " + obj)
   //await insertTextByIndex(docId, "<<<"+"h"+">>>", await findTextIndex(docId, prompt))
   //Name
@@ -145,14 +159,14 @@ async function insertSupervisorData(docId, obj){
   }
 }
 async function insertStudentData(docId, obj){
-  console.log("Inserting supervisor data: " + obj)
-  //await insertTextByIndex(docId, "<<<"+"h"+">>>", await findTextIndex(docId, prompt))
+  await load()
+  console.log("Inserting studenttttt data: " + obj)
   //Name
   try{
     //Name
     let prompt = "Student Name: "
     const nIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["Name"], nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
+    await insertTextByIndex(docId, obj["Name"], nIndex);  //await is needed because then they would inser on the wrong indexes because it would be the index before the other parts have been added
     //Email
     prompt = "Contact Email: "
     const eIndex = await findTextIndex(docId, prompt);
@@ -184,16 +198,25 @@ async function insertStudentData(docId, obj){
     //Activity(Table)
     //const distanceBetweenCells = 3;
     const activities = obj["Activities"]
+    console.log("Activities: " + activities)
     let aIndex = await findTextIndex(docId, "Notes if necessary")+3;
     for(const activity of activities){
-      await insertTextByIndex(docId, activity[0], aIndex);
-      aIndex += activity[0].length + 2;
-      await insertTextByIndex(docId, activity[1], aIndex);
-      aIndex += activity[1].length + 3;
+      if(activity[0]){
+        await insertTextByIndex(docId, activity[0], aIndex);
+        aIndex += activity[0].length + 2;
+      }else{
+        aIndex+=2;
+      }
+      if(activity[1]){
+        await insertTextByIndex(docId, activity[1], aIndex);
+        aIndex += activity[1].length + 3;
+      } else{
+        aIndex+=3;
+      }
     }
   }catch(e){
     console.log("Error propably because document has been tampered")
     console.log("Error inserting supervisor data: " + e)
   }
 }
-module.exports = {insertDrawing, insertSupervisorData, insertStudentData}
+module.exports = {/*insertDrawing,*/ insertSupervisorData, insertStudentData, makeNewDocument}

@@ -42,26 +42,41 @@ async function sendEmail(to, subject, text) {
   }
 }
 
-async function sendEmailToSigner(toEmail, drawingId, docId, userName){
-  const title = `${userName} has invited you to sign their community service form`
-  const docLink = await generateShareableLink(docId)
-  const drawingLink = await generateShareableLink(drawingId)
-  const docHelpLink = "_____docHelpLink____"
-  const drawingHelpLink  = "_____signatureHelpLink_____"
+async function sendEmailToSupervisor(supervisorEmail, volunteerOrganization, studentName, activities, formId){
+  const title = `${studentName} has invited you to sign their community service form`
+ const wrongActivityLink = ""
+ const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScOeJ3Kozrzitkd82mTf5emD-wxxu0AD5gxKir-zoLSzuS_pw/viewform?usp=sharing"+"?studentDataFormId="+formId
+  let studentActivity = "<table><tr><td>Date/Hours</td><td>Notes if necassary</td></tr>"
+  for(const activity of activities){
+    let line = "<tr>"
+    line += `<td>${activity[0]}</td>`
+    line += `<td>${activity[1]}</td>`
+    line += "</tr>"
+    studentActivity += line
+  }
+  studentActivity += "</table>"
   const text = `
-  Hi ${toEmail},<br><br>
-  You have previously participated in a community service activity with ${userName}.<br><br>
-  At Ipswich High School, we require a form to be filled out to show that ${userName} completed their community service.<br><br>
-  You can access their form and print your name and email in the designated spot at the bottom here: <a href="${docLink}">${docLink}</a> and sign that form here <strong>(use web browser)</strong>: <a href="${drawingLink}">${drawingLink}</a><br><br>
-  Need technical help?<br>
-  Go here for help adding your name and email: <a href="${docHelpLink}">${docHelpLink}</a><br>
-  Go here for help adding your signature: <a href="${drawingHelpLink}">${drawingHelpLink}</a><br><br>
-  
+  Hi ${supervisorEmail},<br><br>
+  You have previously participated in a community service activity with ${studentName} as a part of ${volunteerOrganization}.<br><br>
+  At Ipswich High School, we require a form to be filled out to show that ${studentName} completed their community service.<br><br>
+  You can fill out this google form to verify that the student has completed the activity: ${googleFormLink}<br><br>
+  If the student has not completed the activity, then please go to this link: ${wrongActivityLink}<br><br>
+  The activity is listed as: ${studentActivity}<br><br>
   ____Bottom Area. To Fill Out____`
-  await sendEmail(toEmail, title, text)
+  console.log("Sent this text: " + text)
+  await sendEmail(supervisorEmail, title, text)
 }
-
-//sendEmailToSigner("coltonflather@gmail.com", "1USLf3XXgplGt6bfIVl3xR27gwcNbu_RKvEq3a8pXrCg","1qA7EVNkqVXTPTlyI9lNoWbDcfoRe8N1_nL_PkCtCOss","Cole Flather")
+setTimeout(()=>{
+  sendEmailToSupervisor("coltonflather@gmail.com", "volunteerOrganization","studnetName",[
+    [ 'hrs/date', 'notes' ],
+    [ 'hrs2', 'notes2' ],
+    [ '', '' ],
+    [ '', '' ],
+    [ '', '' ],
+    [ '', '' ],
+    [ 'hrs7', 'notes7' ]
+  ],"formIddddd")
+})
 
 module.exports = {
   sendEmail
