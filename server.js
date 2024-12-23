@@ -7,8 +7,9 @@ require('./mongoDB/mongoDBLoader')
 console.log("Loading Google Files");
 require('./google/googleLoader')
 const {getChannelName} = require('./mongoDB/channels')
+const {insertStudentDataFromDb} = require('./mongoDB/studentForms')
 const {handleDrawingUpdate} = require('./google/channels')
-const {insertSupervisorData} = require('./google/docs')
+const {insertSupervisorData, insertStudentData} = require('./google/docs')
 //Setup
 require("dotenv").config();
 const app = express();
@@ -37,13 +38,12 @@ app.get('/api/getUser/:username',(req,res)=>{
 app.get('/api/receiveDrawingUpdate/:channelName', (req, res)=>{
   console.log("Drawing just changed from channel: " + req.params.channelName)
 })
-let num = 0;
 app.post('/api/receiveDrawingUpdate/:channelName', async (req, res)=>{
   const channelId = req.header("X-Goog-Channel-Id");
   const channelName = await getChannelName(channelId)
   console.log("Update Received")
   if(channelName){
-    console.log("_______")
+    //console.log("_______")
     console.log(`Notification received for Channel: ${channelName}`);
     const resourceState = req.header("X-Goog-Resource-State");
     // **Handle Different Notification Types**
@@ -81,15 +81,26 @@ app.post('/api/addActivityPdf', (req,res)=>{
 app.post('/api/addUser', (req,res)=>{
 
 })
-app.put('/api/formSubmitted', (req,res)=>{
-  const payload = req.body;
-  console.log('Received form submission:', payload);
-  const docId = "1qA7EVNkqVXTPTlyI9lNoWbDcfoRe8N1_nL_PkCtCOss"
-  insertSupervisorData(docId, payload);
-  res.status(200).json({
-    message: 'Form submitted successfullyyyy!',
-    receivedData: payload
-  });
+app.put('/api/supervisorFormSubmitted', (req,res)=>{
+  // const payload = req.body;
+  // console.log('Received form submission(supervisor):', payload);
+  // const docId = "1qA7EVNkqVXTPTlyI9lNoWbDcfoRe8N1_nL_PkCtCOss"
+  // insertSupervisorData(docId, payload);
+  // insertStudentDataFromDb(docId);
+  // res.status(200).json({
+  //   message: 'Form submitted successfullyyyy!',
+  //   receivedData: payload
+  // });
+})
+app.put('/api/studentFormSubmitted', (req,res)=>{
+  // const payload = req.body;
+  // console.log('Received form submission(student):', payload);
+  // const docId = "1qA7EVNkqVXTPTlyI9lNoWbDcfoRe8N1_nL_PkCtCOss"
+  // insertStudentData(docId, payload);
+  // res.status(200).json({
+  //   message: 'Form submitted successfullyyyy!',
+  //   receivedData: payload
+  // });
 })
 // Start server
 const PORT = process.env.PORT || 3000;

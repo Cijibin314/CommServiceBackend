@@ -55,46 +55,7 @@ async function insertDrawingByIndex(docId, imageUrl, index) {
       console.error('Error inserting drawing:', error.message);
     }
   }
-  //Returns the LAST index of the first occurence of the text
-  async function findTextIndex(docId, textToFind) {
-  try {
-
-    // Fetch document content
-    const doc = await docs.documents.get({ documentId: docId });
-    const content = doc.data.body.content;
-
-    // Extract full text, including tables
-    let fullText = '';
-
-    function extractText(elements) {
-      elements.forEach(element => {
-        if (element.paragraph) {
-          element.paragraph.elements.forEach(elem => {
-            if (elem.textRun && elem.textRun.content) {
-              fullText += elem.textRun.content;
-            }
-          });
-        } else if (element.table) {
-          element.table.tableRows.forEach(row => {
-            row.tableCells.forEach(cell => {
-              extractText(cell.content);  // Recursive call for table cells
-            });
-          });
-        }
-      });
-    }
-    extractText(content);
-    // Find the index of the target text
-    //27 is to account for the offset
-    //console.log("Full Text: ", fullText);
-    const index = fullText.indexOf(textToFind) + textToFind.length;
-    console.log(`Index of "${textToFind}":`, index);
-    return index;
-
-  } catch (error) {
-    console.error('Error finding text index:', error.message);
-  }
-}
+//Returns the index of where to append after the textToFind
 async function insertTextByIndex(docId, text, index) {
   try{
     await docs.documents.batchUpdate({
@@ -116,6 +77,43 @@ async function insertTextByIndex(docId, text, index) {
     console.error('Error inserting text:', error.message);
   }
 }
+async function findTextIndex(docId, textToFind){
+  const doc = await docs.documents.get({ documentId: docId });
+  const content = doc.data.body.content;
+  for(let i = 1; i < content.length; i++){
+    const section = content[i]
+    if(section.paragraph){  //text
+      const elements = section.paragraph.elements;
+      for(const element of elements){
+        const text = element.textRun.content;
+        if(text.includes(textToFind)){
+          return element.startIndex + textToFind.length;
+        }
+      }
+    }
+    else if(section.table){
+      const tableRows = section.table.tableRows;
+      for(const tableRow of tableRows){
+        const cells = tableRow.tableCells;
+        for(const cell of cells){  //cells.length SHOULd be 2
+          //console.log("Paragraph: " + JSON.stringify(cell))
+          const elements = cell.content[0].paragraph.elements; //should only be one element
+          const startIndex = cell.content[0].startIndex;
+          for(const element of elements){
+            const text = element.textRun.content;
+            console.log("Text: " + text)
+            if(text.includes(textToFind)){
+              console.log("StartIndex: " + startIndex)
+              console.log("Index: " + (startIndex+textToFind.length))
+              return startIndex + textToFind.length;
+            }
+          }
+        }
+      }
+    }
+  }
+  return -1;
+}
 //signerRole HAS to be either "Parent" or "Supervisor"
 async function insertDrawing(docId, imageurl, signerRole){
   const index = await findTextIndex(docId, `Signature of ${signerRole}: `);
@@ -127,18 +125,75 @@ async function insertDrawing(docId, imageurl, signerRole){
 }
 async function insertSupervisorData(docId, obj){
   console.log("Inserting supervisor data: " + obj)
-  await insertTextByIndex(docId, "<<<"+"h"+">>>", 151)
-  // //Name
-  // let prompt = "Signature of Supervisor: "//"Print Name of Supervisor: "
-  // const nIndex = await findTextIndex(docId, prompt)+prompt.length;
-  // await insertTextByIndex(docId, "<<<"+obj["Name"]+">>>", nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
-  // // //Email
-  // prompt = "Email of Supervisor: "
-  // const eIndex = await findTextIndex(docId, prompt)+prompt.length;
-  // await insertTextByIndex(docId, "<<<"+obj["Email"]+">>>", eIndex);
-  // //Phone
-  // prompt = "Phone of Supervisor: "
-  // const pIndex = await findTextIndex(docId, prompt)+prompt.length;
-  // await insertTextByIndex(docId, "<<<"+obj["Phone"]+">>>", pIndex);
+  //await insertTextByIndex(docId, "<<<"+"h"+">>>", await findTextIndex(docId, prompt))
+  //Name
+  try{
+    let prompt = "Print Name of Supervisor: "//"Print Name of Supervisor: "
+    const nIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["Name"], nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
+    //Email
+    prompt = "Email of Supervisor: "
+    const eIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["Email"], eIndex);
+    //Phone
+    prompt = "Phone of Supervisor: "
+    const pIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["Phone"], pIndex);
+  }catch(e){
+    console.log("Error propably because document has been tampered")
+    console.log("Error inserting supervisor data: " + e)
+  }
 }
-module.exports = {insertDrawing, insertSupervisorData}
+async function insertStudentData(docId, obj){
+  console.log("Inserting supervisor data: " + obj)
+  //await insertTextByIndex(docId, "<<<"+"h"+">>>", await findTextIndex(docId, prompt))
+  //Name
+  try{
+    //Name
+    let prompt = "Student Name: "
+    const nIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["Name"], nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
+    //Email
+    prompt = "Contact Email: "
+    const eIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["ContactEmail"], eIndex);
+    //Class
+    prompt = "Class of: "
+    const cIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["Classof"], cIndex);
+    //Student ID
+    prompt = "Student ID: "
+    const iIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["StudentID"], iIndex);
+    //Total Hours
+    prompt = "Total Hours from above: "
+    const hIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["TotalHours"], hIndex);
+    //Description of Comm Service
+    prompt = "Brief description of community service: "
+    const dIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["Briefdescriptionofcommunityservice"], dIndex+1);
+    //Volunteer Organization
+    prompt = "Volunteer Organization: "
+    const oIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["VolunteerOrganization"], oIndex);
+    //Supervisor Email
+    prompt = "Email of Supervisor: "
+    const sIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, obj["SupervisorEmail"], sIndex);
+    //Activity(Table)
+    //const distanceBetweenCells = 3;
+    const activities = obj["Activities"]
+    let aIndex = await findTextIndex(docId, "Notes if necessary")+3;
+    for(const activity of activities){
+      await insertTextByIndex(docId, activity[0], aIndex);
+      aIndex += activity[0].length + 2;
+      await insertTextByIndex(docId, activity[1], aIndex);
+      aIndex += activity[1].length + 3;
+    }
+  }catch(e){
+    console.log("Error propably because document has been tampered")
+    console.log("Error inserting supervisor data: " + e)
+  }
+}
+module.exports = {insertDrawing, insertSupervisorData, insertStudentData}

@@ -15,5 +15,6 @@ class globleVar{
 let channelConnection = new globleVar()
 let database = new globleVar()
 let userConnection = new globleVar()
+let studentFormConnection = new globleVar()
 let oAuth2Client = new globleVar()
-module.exports = {channelConnection, database, userConnection, oAuth2Client};
+module.exports = {channelConnection, database, userConnection, oAuth2Client, studentFormConnection};

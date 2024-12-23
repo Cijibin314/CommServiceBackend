@@ -15,10 +15,14 @@ async function connect(){
     const database = client.db("CommServiceData");
     const channelConnection = database.collection("Channels");
     const userConnection = database.collection("Users");
+    const studentFormsConnection = database.collection("StudentForms")
 
     globleVars.database.setVal(database);
     globleVars.userConnection.setVal(userConnection);
     globleVars.channelConnection.setVal(channelConnection);
+    globleVars.studentFormConnection.setVal(studentFormsConnection);
+    console.log("Set value for channel :" + JSON.stringify(channelConnection))
+    console.log("Set value for student form: " + JSON.stringify(studentFormsConnection))
 }
 connect().then((arr)=>{
     console.log("Connected to MongoDB!")
