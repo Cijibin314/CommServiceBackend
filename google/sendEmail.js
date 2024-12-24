@@ -44,8 +44,8 @@ async function sendEmail(to, subject, text) {
 
 async function sendEmailToSupervisor(supervisorEmail, volunteerOrganization, studentName, activities, formId){
   const title = `${studentName} has invited you to sign their community service form`
- const wrongActivityLink = ""
- const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScOeJ3Kozrzitkd82mTf5emD-wxxu0AD5gxKir-zoLSzuS_pw/viewform?usp=sharing"+"?studentDataFormId="+formId
+ const wrongActivityLink = "<<<wrongActivityLink>>>"
+ const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScOeJ3Kozrzitkd82mTf5emD-wxxu0AD5gxKir-zoLSzuS_pw/viewform?usp=pp_url&entry.171355152="+formId
   let studentActivity = "<table><tr><td>Date/Hours</td><td>Notes if necassary</td></tr>"
   for(const activity of activities){
     let line = "<tr>"

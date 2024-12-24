@@ -6,9 +6,7 @@ console.log("Loading MongoDB Files")
 require('./mongoDB/mongoDBLoader')
 console.log("Loading Google Files");
 require('./google/googleLoader')
-const {getChannelName} = require('./mongoDB/channels')
 const {insertStudentDataFromDb, addStudentDataToDb} = require('./mongoDB/studentForms')
-//const {handleDrawingUpdate} = require('./google/channels')
 const {insertSupervisorData, insertStudentData} = require('./google/docs')
 //Setup
 require("dotenv").config();
@@ -16,7 +14,7 @@ const app = express();
 
 // Middleware
 async function checkForRequirements(req, res, next) {
-  if(globalVars.userConnection && globalVars.channelConnection && globalVars.database){
+  if(globalVars.userConnection && globalVars.database){
     next();
   }else{
     console.log("Not connected to mongodb")
@@ -33,7 +31,8 @@ app.use(checkForRequirements)
 app.put('/api/supervisorFormSubmitted', (req,res)=>{
   const payload = req.body;
   console.log('Received form submission(supervisor):', payload);
-  insertStudentDataFromDb(docId);
+  const formId = payload[""]
+  const docId = insertStudentDataFromDb(formId);
   insertSupervisorData(docId, payload);
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',

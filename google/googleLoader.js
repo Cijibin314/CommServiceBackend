@@ -1,7 +1,5 @@
 console.log("-_____")
 require('./oAuth2Client.js');
-console.log("--____")
-require('./channels.js')
 console.log("---___")
 require('./drawings.js')
 console.log("----__")

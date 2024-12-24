@@ -14,6 +14,7 @@ async function insertStudentDataFromDb(formId){
     }else{
         console.log("No form found for id: " + formId);
     }
+    return "Failure"
 }
 //returns the formId
 async function addStudentDataToDb(studentData){
