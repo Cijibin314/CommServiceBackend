@@ -42,10 +42,9 @@ async function sendEmail(to, subject, text) {
   }
 }
 
-async function sendEmailToSupervisor(supervisorEmail, volunteerOrganization, studentName, activities, formId){
+async function sendEmailToSupervisor(supervisorEmail, volunteerOrganization, studentName, activities, dateStudentSubmitted){
   const title = `${studentName} has invited you to sign their community service form`
- const wrongActivityLink = "<<<wrongActivityLink>>>"
- const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScOeJ3Kozrzitkd82mTf5emD-wxxu0AD5gxKir-zoLSzuS_pw/viewform?usp=pp_url&entry.171355152="+formId
+  const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScOeJ3Kozrzitkd82mTf5emD-wxxu0AD5gxKir-zoLSzuS_pw/viewform?usp=pp_url&entry.171355152="+dateStudentSubmitted
   let studentActivity = "<table><tr><td>Date/Hours</td><td>Notes if necassary</td></tr>"
   for(const activity of activities){
     let line = "<tr>"
@@ -60,11 +59,13 @@ async function sendEmailToSupervisor(supervisorEmail, volunteerOrganization, stu
   You have previously participated in a community service activity with ${studentName} as a part of ${volunteerOrganization}.<br><br>
   At Ipswich High School, we require a form to be filled out to show that ${studentName} completed their community service.<br><br>
   You can fill out this google form to verify that the student has completed the activity: ${googleFormLink}<br><br>
-  If the student has not completed the activity, then please go to this link: ${wrongActivityLink}<br><br>
   The activity is listed as: ${studentActivity}<br><br>
   ____Bottom Area. To Fill Out____`
   console.log("Sent this text: " + text)
   await sendEmail(supervisorEmail, title, text)
+}
+async function sendEmailToParent(parentEmail, volunteerOrganization, activities, studentName, dateStudentSubmitted){
+
 }
 setTimeout(()=>{
   sendEmailToSupervisor("coltonflather@gmail.com", "volunteerOrganization","studnetName",[

@@ -31,9 +31,11 @@ app.use(checkForRequirements)
 app.put('/api/supervisorFormSubmitted', (req,res)=>{
   const payload = req.body;
   console.log('Received form submission(supervisor):', payload);
-  const formId = payload[""]
-  const docId = insertStudentDataFromDb(formId);
-  insertSupervisorData(docId, payload);
+  const dateSubmitted = payload["Datestudentfilledouttheirform"]
+  const docId = insertStudentDataFromDb(dateSubmitted);
+  if(checkIfFormVerified(dateSubmitted)){
+    insertSupervisorData(docId, payload);
+  }
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',
     receivedData: payload
@@ -43,8 +45,21 @@ app.put('/api/supervisorFormSubmitted', (req,res)=>{
 app.put('/api/studentFormSubmitted', (req,res)=>{
   const payload = req.body;
   console.log('Received form submission(student):', payload);
-  const formId = addStudentDataToDb(payload);
-  sendEmailToSupervisor(payload.SupervisorEmail, payload.VolunteerOrganization, payload.Name, formId)
+  addStudentDataToDb(payload);
+  sendEmailToSupervisor(payload.SupervisorEmail, payload.VolunteerOrganization, payload.Name, payload.DateSubmitted);
+  sendEmailToParent(payload.ParentEmail, payload.VolunteerOrganization, payload.Name, payload.DateSubmitted);
+  res.status(200).json({
+    message: 'Form submitted successfullyyyy!',
+    receivedData: payload
+  });
+})
+
+app.put('/api/parentFormSubmitted', (req,res)=>{
+  const payload = req.body;
+  console.log('Received form submission(parent):', payload);
+  const dateSubmitted = payload["Datestudentfilledouttheirform"]
+  
+  insertSupervisorData(docId, payload);
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',
     receivedData: payload

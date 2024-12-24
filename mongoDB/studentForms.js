@@ -1,10 +1,10 @@
 let {studentFormConnection} = require('../globalVars')
 const { ObjectId } = require('mongodb');
 const {makeNewDocument, insertStudentData} = require('../google/docs')
-async function insertStudentDataFromDb(formId){
+async function insertStudentDataFromDb(dateSubmitted){
     studentFormConnection = await studentFormConnection.getVal()
-    const objectId = new ObjectId(formId);
-    const form = await studentFormConnection.findOne({"_id": objectId}).catch(e=>console.log("Error finding form: " + e));
+    //const objectId = new ObjectId(formId);
+    const form = await studentFormConnection.findOne({"dateSubmitted": dateSubmitted}).catch(e=>console.log("Error finding form: " + e));
     if(form){
         const formData = form["studentData"];
         const docId = await makeNewDocument("Student Community Service Form"+formId)
@@ -21,18 +21,29 @@ async function addStudentDataToDb(studentData){
     studentFormConnection = await studentFormConnection.getVal()
     const doc = {
         "studentData": studentData,
-        "verified": false,
+        "verifiedByParent": false,
+        "verifiedBySupervisor": false,
+        "alreadyAdded": false,
+        "dateSubmitted": studentData.DateSubmitted
     }
     await studentFormConnection.insertOne(doc).catch(e=>console.log("Error adding channel: " + e))
-    const form = await studentFormConnection.findOne({"studentData": studentData}).catch(e=>console.log("Error getting studentData: " + e));
-    return form["_id"].toString();
+    //const form = await studentFormConnection.findOne({"studentData": studentData}).catch(e=>console.log("Error getting studentData: " + e));
+    //return form["_id"].toString();
 }
 //string of formId 
 // not tested yet
-async function verifyStudentData(formId){
+async function verifyStudentDataSupervisor(dateSubmitted){
     studentFormConnection = await studentFormConnection.getVal()
     try{
-        await studentFormConnection.updateOne({"_id": new ObjectId(formId)}, {$set: {"verified": true}});
+        await studentFormConnection.updateOne({"DateSubmitted": dateSubmitted}, {$set: {"verifiedBySupervisor": true}});
+    }catch(e){
+        console.log("Error verifying student data: " + e);
+    }
+}
+async function verifyStudentDataParent(dateSubmitted){
+    studentFormConnection = await studentFormConnection.getVal()
+    try{
+        await studentFormConnection.updateOne({"DateSubmitted": dateSubmitted}, {$set: {"verifiedByParent": true}});
     }catch(e){
         console.log("Error verifying student data: " + e);
     }
@@ -40,4 +51,4 @@ async function verifyStudentData(formId){
 // setTimeout(()=>{
 //     insertStudentDataFromDb("67699d4eafe7e256ae6c953f");
 // },3000)
-module.exports = {insertStudentDataFromDb, addStudentDataToDb};
+module.exports = {insertStudentDataFromDb, addStudentDataToDb, verifyStudentDataSupervisor, verifyStudentDataParent};
