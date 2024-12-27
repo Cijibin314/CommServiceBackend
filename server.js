@@ -6,15 +6,18 @@ console.log("Loading MongoDB Files")
 require('./mongoDB/mongoDBLoader')
 console.log("Loading Google Files");
 require('./google/googleLoader')
-const {insertStudentDataFromDb, addStudentDataToDb} = require('./mongoDB/studentForms')
-const {insertSupervisorData, insertStudentData} = require('./google/docs')
+const {makeDocumentFromDb, addStudentDataToDb, addParentDataToDb, addSupervisorDataToDb, verifyBy, addPermActivity, getDocDataFromDb} = require('./mongoDB/docData')
+const {insertSupervisorData, insertStudentData, insertParentData} = require('./google/docs')
+const {sendEmailToSchool, sendEmailToParent, sendEmailToSupervisor} = require('./google/sendEmail')
+const {generateShareableLink} = require('./google/getLinks')
 //Setup
 require("dotenv").config();
 const app = express();
 
+
 // Middleware
 async function checkForRequirements(req, res, next) {
-  if(globalVars.userConnection && globalVars.database){
+  if(globalVars.database){
     next();
   }else{
     console.log("Not connected to mongodb")
@@ -28,13 +31,54 @@ app.use(checkForRequirements)
 
 //handle conection
 //Set up endpoints
-app.put('/api/supervisorFormSubmitted', (req,res)=>{
+
+app.put('/api/studentFormSubmitted', async (req,res)=>{
+  const payload = req.body;
+  console.log('Received form submission(student):', payload);
+  addStudentDataToDb(payload);
+  sendEmailToSupervisor(payload);
+  sendEmailToParent(payload);
+  res.status(200).json({
+    message: 'Form submitted successfullyyyy!',
+    receivedData: payload
+  });
+})
+app.put('/api/supervisorFormSubmitted', async (req,res)=>{
   const payload = req.body;
   console.log('Received form submission(supervisor):', payload);
   const dateSubmitted = payload["Datestudentfilledouttheirform"]
-  const docId = insertStudentDataFromDb(dateSubmitted);
-  if(checkIfFormVerified(dateSubmitted)){
-    insertSupervisorData(docId, payload);
+  const docData = await getDocDataFromDb(dateSubmitted);
+  verifyBy(dateSubmitted, "Supervisor");
+  await addSupervisorDataToDb(dateSubmitted, payload);
+  if(docData.verifiedByParent && !docData.formCreated){
+    console.log("creating form-s")
+     const docId = await makeDocumentFromDb(dateSubmitted)
+     const link = await generateShareableLink(docId);
+     sendEmailToSchool(link)
+  }else{
+    console.log("not yet-s")
+  }
+  res.status(200).json({
+    message: 'Form submitted successfullyyyy!',
+    receivedData: payload
+  });
+})
+app.put('/api/parentFormSubmitted', async (req,res)=>{
+  const payload = req.body;
+  console.log('Received form submission(parent):', payload);
+  const dateSubmitted = payload["Datestudentfilledouttheirform"]
+  verifyBy(dateSubmitted, "Parent");
+  await addParentDataToDb(dateSubmitted, payload);
+  const docData = await getDocDataFromDb(dateSubmitted);
+  console.log("docData: ", docData)
+  console.log("verifiedBySupervisor: ", typeof docData.verifiedBySupervisor)
+  if(docData.verifiedBySupervisor && !docData.formCreated){
+    console.log("creating form-p")
+     const docId = await makeDocumentFromDb(dateSubmitted);
+     const link = await generateShareableLink(docId);
+     sendEmailToSchool(link)
+  }else{
+    console.log("not yet-p")
   }
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',
@@ -42,24 +86,14 @@ app.put('/api/supervisorFormSubmitted', (req,res)=>{
   });
 })
 
-app.put('/api/studentFormSubmitted', (req,res)=>{
+app.put('/api/schoolFormSubmitted', async (req,res)=>{
   const payload = req.body;
-  console.log('Received form submission(student):', payload);
-  addStudentDataToDb(payload);
-  sendEmailToSupervisor(payload.SupervisorEmail, payload.VolunteerOrganization, payload.Name, payload.DateSubmitted);
-  sendEmailToParent(payload.ParentEmail, payload.VolunteerOrganization, payload.Name, payload.DateSubmitted);
-  res.status(200).json({
-    message: 'Form submitted successfullyyyy!',
-    receivedData: payload
-  });
-})
-
-app.put('/api/parentFormSubmitted', (req,res)=>{
-  const payload = req.body;
-  console.log('Received form submission(parent):', payload);
+  console.log('Received form submission(school):', payload);
   const dateSubmitted = payload["Datestudentfilledouttheirform"]
-  
-  insertSupervisorData(docId, payload);
+  const docData = await getDocDataFromDb(dateSubmitted);
+  verifyBy(dateSubmitted, "School");
+  addPermActivity(docData)
+  //sendConfirmationEmailToSchool(docData)
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',
     receivedData: payload

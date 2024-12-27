@@ -42,11 +42,11 @@ async function sendEmail(to, subject, text) {
   }
 }
 
-async function sendEmailToSupervisor(supervisorEmail, volunteerOrganization, studentName, activities, dateStudentSubmitted){
-  const title = `${studentName} has invited you to sign their community service form`
-  const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScOeJ3Kozrzitkd82mTf5emD-wxxu0AD5gxKir-zoLSzuS_pw/viewform?usp=pp_url&entry.171355152="+dateStudentSubmitted
+async function sendEmailToSupervisor(studentData){
+  const title = `${studentData.Name} has invited you to sign their community service form as their supervisor`
+  const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScOeJ3Kozrzitkd82mTf5emD-wxxu0AD5gxKir-zoLSzuS_pw/viewform?usp=pp_url&entry.171355152="+studentData.DateSubmitted
   let studentActivity = "<table><tr><td>Date/Hours</td><td>Notes if necassary</td></tr>"
-  for(const activity of activities){
+  for(const activity of studentData.Activities){
     let line = "<tr>"
     line += `<td>${activity[0]}</td>`
     line += `<td>${activity[1]}</td>`
@@ -55,30 +55,58 @@ async function sendEmailToSupervisor(supervisorEmail, volunteerOrganization, stu
   }
   studentActivity += "</table>"
   const text = `
-  Hi ${supervisorEmail},<br><br>
-  You have previously participated in a community service activity with ${studentName} as a part of ${volunteerOrganization}.<br><br>
-  At Ipswich High School, we require a form to be filled out to show that ${studentName} completed their community service.<br><br>
+  Hi ${studentData.SupervisorEmail},<br><br>
+  You have previously participated in a community service activity with ${studentData.Name} as a part of ${studentData.VolunteerOrganization}.<br><br>
+  At Ipswich High School, we require a form to be filled out to show that ${studentData.Name} completed their community service.<br><br>
   You can fill out this google form to verify that the student has completed the activity: ${googleFormLink}<br><br>
   The activity is listed as: ${studentActivity}<br><br>
   ____Bottom Area. To Fill Out____`
   console.log("Sent this text: " + text)
-  await sendEmail(supervisorEmail, title, text)
+  await sendEmail(studentData.SupervisorEmail, title, text)
 }
-async function sendEmailToParent(parentEmail, volunteerOrganization, activities, studentName, dateStudentSubmitted){
-
+async function sendEmailToParent(studentData){
+  const title = `${studentData.Name} has invited you to sign their community service form as their parent`
+  const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLSddpekqibVqSSI0QDLHoPC86WLUWr_8RTH6cnMFFD5e09hA1Q/viewform?usp=pp_url&entry.1468050593="+studentData.DateSubmitted
+  let studentActivity = "<table><tr><td>Date/Hours</td><td>Notes if necassary</td></tr>"
+  for(const activity of studentData.Activities){
+    let line = "<tr>"
+    line += `<td>${activity[0]}</td>`
+    line += `<td>${activity[1]}</td>`
+    line += "</tr>"
+    studentActivity += line
+  }
+  studentActivity += "</table>"
+  const text = `
+  Hi ${studentData.ParentEmail},<br><br>
+  Your child has previously participated in a community service activity with ${studentData.SupervisorEmail} as a part of ${studentData.VolunteerOrganization}.<br><br>
+  At Ipswich High School, we require a form to be filled out to show that ${studentData.Name} completed their community service.<br><br>
+  You can fill out this google form to verify that your child has completed the activity: ${googleFormLink}<br><br>
+  The activity is listed as: ${studentActivity} <br></br>Total Hours: ${studentData.TotalHours}<br><br>
+  ____Bottom Area. To Fill Out____`
+  console.log("Sent this text: " + text)
+  await sendEmail(studentData.ParentEmail, title, text)
 }
-setTimeout(()=>{
-  sendEmailToSupervisor("coltonflather@gmail.com", "volunteerOrganization","studnetName",[
-    [ 'hrs/date', 'notes' ],
-    [ 'hrs2', 'notes2' ],
-    [ '', '' ],
-    [ '', '' ],
-    [ '', '' ],
-    [ '', '' ],
-    [ 'hrs7', 'notes7' ]
-  ],"formIddddd")
-})
+async function sendEmailToSchool(link){
+  console.log("Sending email to school: " + link)
+}
+async function sendConfirmationEmailToSchool(studentData){
+  //console.log("Sending confirmation email to school: " + studentData)
+}
+// setTimeout(()=>{
+//   sendEmailToSupervisor("coltonflather@gmail.com", "volunteerOrganization","studentName",[
+//     [ 'hrs/date', 'notes' ],
+//     [ 'hrs2', 'notes2' ],
+//     [ '', '' ],
+//     [ '', '' ],
+//     [ '', '' ],
+//     [ '', '' ],
+//     [ 'hrs7', 'notes7' ]
+//   ],"formIddddd")
+// },3000)
 
 module.exports = {
-  sendEmail
+  sendEmailToSupervisor,
+  sendEmailToParent,
+  sendEmailToSchool,
+  sendConfirmationEmailToSchool
 };

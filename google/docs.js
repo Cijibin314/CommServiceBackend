@@ -1,7 +1,6 @@
 let {oAuth2Client} = require('../globalVars')
 const { google } = require('googleapis');
 let drive, docs
-const {exportAndUploadImage, deleteDrawing} = require('./drawings')
 
 let first = true;
 function load(){
@@ -34,37 +33,6 @@ async function makeNewDocument(newTitle) {
         throw error;
     }
 }
-async function insertDrawingByIndex(docId, imageUrl, index) {
-  await load()
-    try {
-      // Fallback for size (use fixed size or approximate dimensions)
-      const width = 50;   // Use a fixed width or assume a reasonable value
-      //const height = ;   // Use a fixed height or assume a reasonable value
-      const size = {
-        width: { magnitude: width, unit: 'PT' },   // Adjusted width
-      }
-      // Insert the image into the document
-      const response = await docs.documents.batchUpdate({
-        documentId: docId,
-        requestBody: {
-          requests: [
-            {
-              insertInlineImage: {
-                uri: imageUrl,
-                location: { index: index },
-                objectSize: size,
-              },
-            },
-          ],
-        },
-      });
-  
-      console.log('Image inserted successfully:', response.data);
-      deleteDrawing(imageUrl)
-    } catch (error) {
-      console.error('Error inserting drawing:', error.message);
-    }
-  }
 //Returns the index of where to append after the textToFind
 async function insertTextByIndex(docId, text, index) {
   await load()
@@ -126,78 +94,77 @@ async function findTextIndex(docId, textToFind){
   }
   return -1;
 }
-//signerRole HAS to be either "Parent" or "Supervisor"
-// async function insertDrawing(docId, imageurl, signerRole){
-//   await load()
-//   const index = await findTextIndex(docId, `Signature of ${signerRole}: `);
-//   insertDrawingByIndex(docId, imageurl, index);
-//   const indexForDate = index + 7; //1 + "Date: ".length + 1= 7
-//   const date = new Date().toISOString().split('T')[0];
-//   console.log("Date: " + date)
-//   insertTextByIndex(docId, date, indexForDate);
-// }
-async function insertSupervisorData(docId, obj){
+async function insertSupervisorData(docId, docData){
+  const supervisorData = docData["supervisorData"];
   await load()
-  console.log("Inserting supervisor data: " + obj)
+  console.log("Inserting supervisor data: " + supervisorData)
   //await insertTextByIndex(docId, "<<<"+"h"+">>>", await findTextIndex(docId, prompt))
   //Name
   try{
     let prompt = "Print Name of Supervisor: "//"Print Name of Supervisor: "
     const nIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["Name"], nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
-    //Email
-    prompt = "Email of Supervisor: "
-    const eIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["Email"], eIndex);
+    await insertTextByIndex(docId, supervisorData["Name"], nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
     //Phone
     prompt = "Phone of Supervisor: "
     const pIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["Phone"], pIndex);
+    await insertTextByIndex(docId, supervisorData["Phone"], pIndex);
+    //Email
+    prompt = "Email of Supervisor: "
+    const eIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, supervisorData["Email"], eIndex);
+    //Signature
+    prompt = "Signature of Supervisor: "
+    const sIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, supervisorData["PrintFullName(validassignature)"], sIndex);
+    //Date of signature
+    const dIndex = sIndex + supervisorData["PrintFullName(validassignature)"].length + 1 + 6;//6 is "Date: ".length
+    await insertTextByIndex(docId, docData["verifiedBySupervisor"], dIndex);
   }catch(e){
     console.log("Error propably because document has been tampered")
     console.log("Error inserting supervisor data: " + e)
   }
 }
-async function insertStudentData(docId, obj){
+async function insertStudentData(docId, docData){
   await load()
-  console.log("Inserting studenttttt data: " + obj)
+  console.log("Inserting studenttttt data: " + docData)
   //Name
   try{
+    const studentData = docData["studentData"];
     //Name
     let prompt = "Student Name: "
     const nIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["Name"], nIndex);  //await is needed because then they would inser on the wrong indexes because it would be the index before the other parts have been added
+    await insertTextByIndex(docId, studentData["Name"], nIndex);  //await is needed because then they would insert on the wrong indexes because it would be the index before the other parts have been added
     //Email
     prompt = "Contact Email: "
     const eIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["ContactEmail"], eIndex);
+    await insertTextByIndex(docId, studentData["ContactEmail"], eIndex);
     //Class
     prompt = "Class of: "
     const cIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["Classof"], cIndex);
+    await insertTextByIndex(docId, studentData["Classof"], cIndex);
     //Student ID
     prompt = "Student ID: "
     const iIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["StudentID"], iIndex);
+    await insertTextByIndex(docId, studentData["StudentID"], iIndex);
     //Total Hours
     prompt = "Total Hours from above: "
     const hIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["TotalHours"], hIndex);
+    await insertTextByIndex(docId, studentData["TotalHours"], hIndex);
     //Description of Comm Service
     prompt = "Brief description of community service: "
     const dIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["Briefdescriptionofcommunityservice"], dIndex+1);
+    await insertTextByIndex(docId, studentData["Briefdescriptionofcommunityservice"], dIndex+1);
     //Volunteer Organization
     prompt = "Volunteer Organization: "
     const oIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["VolunteerOrganization"], oIndex);
+    await insertTextByIndex(docId, studentData["VolunteerOrganization"], oIndex);
     //Supervisor Email
     prompt = "Email of Supervisor: "
     const sIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, obj["SupervisorEmail"], sIndex);
+    await insertTextByIndex(docId, studentData["SupervisorEmail"], sIndex);
     //Activity(Table)
     //const distanceBetweenCells = 3;
-    const activities = obj["Activities"]
+    const activities = studentData["Activities"]
     console.log("Activities: " + activities)
     let aIndex = await findTextIndex(docId, "Notes if necessary")+3;
     for(const activity of activities){
@@ -219,4 +186,13 @@ async function insertStudentData(docId, obj){
     console.log("Error inserting supervisor data: " + e)
   }
 }
-module.exports = {/*insertDrawing,*/ insertSupervisorData, insertStudentData, makeNewDocument}
+async function insertParentData(docId, docData){
+  //Signature
+  let prompt = "Signature of Parent: "
+  const sIndex = await findTextIndex(docId, prompt);
+  await insertTextByIndex(docId, docData.parentData["PrintFullName(validassignature)"], sIndex);
+  //Date of signature
+  const dIndex = sIndex + docData.parentData["PrintFullName(validassignature)"].length + 1 + 6;//6 is "Date: ".length
+  await insertTextByIndex(docId, docData["verifiedByParent"], dIndex);
+}
+module.exports = {insertParentData, insertSupervisorData, insertStudentData, makeNewDocument}

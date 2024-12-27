@@ -12,3 +12,4 @@ oAuth2ClientLocal.setCredentials({
   refresh_token: process.env.REFRESH_TOKEN,
 })
 oAuth2Client.setVal(oAuth2ClientLocal);
+console.log("Google OAuth2 client initialized successfully!")

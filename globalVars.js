@@ -1,10 +1,11 @@
 class globleVar{
-    constructor(){
+    constructor(name){
         this.value = null;
+        this.name = name;
     }
     getVal(){
         if(this.value == null){
-            console.log("Warning: No set value!!!")
+            console.log("Warning: No set value for var: " + this.name + "!!")
         }
         return this.value;
     }
@@ -12,8 +13,8 @@ class globleVar{
         this.value = val;
     }
 }
-let database = new globleVar()
-let userConnection = new globleVar()
-let studentFormConnection = new globleVar()
-let oAuth2Client = new globleVar()
-module.exports = {database, userConnection, oAuth2Client, studentFormConnection};
+let database = new globleVar("database")
+let userConnection = new globleVar("userConnection")
+let docDataConnection = new globleVar("docDataConnection")
+let oAuth2Client = new globleVar("oAuth2Client")
+module.exports = {database, userConnection, oAuth2Client, docDataConnection};
