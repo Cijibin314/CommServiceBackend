@@ -54,7 +54,7 @@ app.put('/api/supervisorFormSubmitted', async (req,res)=>{
     console.log("creating form-s")
      const docId = await makeDocumentFromDb(dateSubmitted)
      const link = await generateShareableLink(docId);
-     sendEmailToSchool(link)
+     sendEmailToSchool(link, docData.studentData.ContactEmail)
   }else{
     console.log("not yet-s")
   }
@@ -76,7 +76,7 @@ app.put('/api/parentFormSubmitted', async (req,res)=>{
     console.log("creating form-p")
      const docId = await makeDocumentFromDb(dateSubmitted);
      const link = await generateShareableLink(docId);
-     sendEmailToSchool(link)
+     sendEmailToSchool(link, docData.studentData.ContactEmail)
   }else{
     console.log("not yet-p")
   }
@@ -105,4 +105,3 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 console.log("End of server.js file :)")
-//Transport the id throught the url params of the supervisor form when emailing
