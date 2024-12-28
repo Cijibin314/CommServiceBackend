@@ -1,6 +1,5 @@
 let {docDataConnection} = require('../globalVars')
 const {makeNewDocument, insertStudentData, insertParentData, insertSupervisorData} = require('../google/docs');
-const e = require('express');
 async function makeDocumentFromDb(dateSubmitted){
     //const objectId = new ObjectId(formId);
     docDataConnection.getVal().updateOne({"dateSubmitted": dateSubmitted}, {$set: {"formCreated": true}});

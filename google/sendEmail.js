@@ -85,20 +85,18 @@ async function sendEmailToParent(studentData){
   await sendEmail(studentData.ParentEmail, title, text)
 }
 async function sendEmailToSchool(link){
+  const formLink = "___formLink___"
   const title = `A student has invited completed their community service form`
   const text = `
   Hi,<br><br>
-  A student has previously participated in a community service activity. Their form has been filled out by their parent/gardian and supervisor. <br>The form can be found here: ${link}
-  Please assure that the email addresses of the parent and supervisor are valid. <br>
+  A student has previously participated in a community service activity. Their form has been filled out by their parent/gardian and supervisor. The form can be found here: ${link} <br>
+  Please assure that the email addresses of the parent and supervisor are valid. Afterwards, please fill out this form: ${formLink} to add their activity permanently<br>
   ____Bottom Area. To Fill Out____`
   await sendEmail("coltonflather@gmail.com", title, text)
 }
 async function sendConfirmationEmailToSchool(studentData){
   //console.log("Sending confirmation email to school: " + studentData)
 }
-setTimeout(()=>{
-  sendEmailToSchool("link")
-},3000)
 
 module.exports = {
   sendEmailToSupervisor,

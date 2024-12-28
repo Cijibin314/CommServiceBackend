@@ -10,11 +10,12 @@ class globleVar{
         return this.value;
     }
     setVal(val){
+        console.log("Set value for "+this.name + " to: " + val);
         this.value = val;
     }
 }
 let database = new globleVar("database")
-let userConnection = new globleVar("userConnection")
+let activityConnection = new globleVar("activityConnection")
 let docDataConnection = new globleVar("docDataConnection")
 let oAuth2Client = new globleVar("oAuth2Client")
-module.exports = {database, userConnection, oAuth2Client, docDataConnection};
+module.exports = {database, activityConnection, oAuth2Client, docDataConnection};

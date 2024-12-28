@@ -1,8 +1,8 @@
 const { MongoClient, ServerApiVersion } = require("mongodb");
 require('dotenv').config()
 const globleVars = require('../globalVars.js')
-function connect(){
-    const client = new MongoClient(process.env.CONNECTION_STRING,  {
+async function connect(){
+    const client = await new MongoClient(process.env.CONNECTION_STRING,  {
         serverApi: {
             version: ServerApiVersion.v1,
             strict: true,
@@ -10,16 +10,18 @@ function connect(){
         }
     }
     );
-    client.connect().then(()=>{
-        const database = client.db("CommServiceData");
-        const userConnection = database.collection("Users");
-        const docDataConnection = database.collection("DocData")
+    await client.connect()
+    const database = await client.db("CommServiceData");
+    const activityConnection = await database.collection("Activity");
+    const docDataConnection = await database.collection("DocData")
 
-        globleVars.database.setVal(database);
-        globleVars.userConnection.setVal(userConnection);
-        globleVars.docDataConnection.setVal(docDataConnection);
-        //console.log("studFormConn: " + globleVars.studentFormConnection.getVal())
-    })
+    await globleVars.database.setVal(database);
+    await globleVars.activityConnection.setVal(activityConnection);
+    await globleVars.docDataConnection.setVal(docDataConnection);
+    //console.log("studFormConn: " + globleVars.studentFormConnection.getVal())
+
 }
-connect()
-console.log("Connected to MongoDB!")
+connect().then(()=>{
+    console.log("Connected to MongoDB!")
+})
+

@@ -6,9 +6,10 @@ console.log("Loading MongoDB Files")
 require('./mongoDB/mongoDBLoader')
 console.log("Loading Google Files");
 require('./google/googleLoader')
-const {makeDocumentFromDb, addStudentDataToDb, addParentDataToDb, addSupervisorDataToDb, verifyBy, addPermActivity, getDocDataFromDb} = require('./mongoDB/docData')
+const {makeDocumentFromDb, addStudentDataToDb, addParentDataToDb, addSupervisorDataToDb, verifyBy, getDocDataFromDb} = require('./mongoDB/docData')
 const {insertSupervisorData, insertStudentData, insertParentData} = require('./google/docs')
 const {sendEmailToSchool, sendEmailToParent, sendEmailToSupervisor} = require('./google/sendEmail')
+const {addPermActivity} = require('./mongoDB/activity')
 const {generateShareableLink} = require('./google/getLinks')
 //Setup
 require("dotenv").config();
@@ -40,6 +41,15 @@ app.put('/api/studentFormSubmitted', async (req,res)=>{
   sendEmailToParent(payload);
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',
+    receivedData: payload
+  });
+})
+app.put('/api/invalidStudentFormSubmitted', async (req,res)=>{
+  const payload = req.body;
+  console.log('Received invalid form submission(student):', payload);
+  sendRedoEmailToStudent(payload.email)
+  res.status(200).json({
+    message: 'Send redo email',
     receivedData: payload
   });
 })
@@ -93,7 +103,7 @@ app.put('/api/schoolFormSubmitted', async (req,res)=>{
   const docData = await getDocDataFromDb(dateSubmitted);
   verifyBy(dateSubmitted, "School");
   addPermActivity(docData)
-  //sendConfirmationEmailToSchool(docData)
+  sendSuccessEmailToStudent(docData.studentData.ContactEmail, docData.dateSubmitted)
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',
     receivedData: payload
