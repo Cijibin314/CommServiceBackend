@@ -84,23 +84,38 @@ async function sendEmailToParent(studentData){
   ____Bottom Area. To Fill Out____`
   await sendEmail(studentData.ParentEmail, title, text)
 }
-async function sendEmailToSchool(link){
+async function sendEmailToSchool(link, studentEmail){
   const formLink = "___formLink___"
   const title = `A student has invited completed their community service form`
   const text = `
-  Hi,<br><br>
+  Hi,<br>
   A student has previously participated in a community service activity. Their form has been filled out by their parent/gardian and supervisor. The form can be found here: ${link} <br>
   Please assure that the email addresses of the parent and supervisor are valid. Afterwards, please fill out this form: ${formLink} to add their activity permanently<br>
+  If you believe that the studnet has not filled out a valid form, then please email them at ${studentEmail}<br>
   ____Bottom Area. To Fill Out____`
   await sendEmail("coltonflather@gmail.com", title, text)
 }
-async function sendConfirmationEmailToSchool(studentData){
-  //console.log("Sending confirmation email to school: " + studentData)
+async function sendRedoEmail(email, error){
+  const title = `Your recently submitted form is inalid`
+  const text = `
+  Hi,<br>
+  You recently sumbitted your form for community service. However, the following error ocurred with your form: 
+  ${error}
+  ____Bottom Area. To Fill Out____`
+  await sendEmail(email, title, text)
 }
-
+async function sendSuccessEmailToStudent(email, dateSubmitted){
+  const title = `Form success!`
+  const text = `
+  Hi,<br>
+  Your form submitted at ${dateSubmitted} has been sucessfully added<br>
+  ____Bottom Area. To Fill Out____`
+  await sendEmail(email, title, text)
+}
 module.exports = {
   sendEmailToSupervisor,
   sendEmailToParent,
   sendEmailToSchool,
-  sendConfirmationEmailToSchool
+  sendRedoEmail,
+  sendSuccessEmailToStudent
 };

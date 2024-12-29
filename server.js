@@ -7,10 +7,12 @@ require('./mongoDB/mongoDBLoader')
 console.log("Loading Google Files");
 require('./google/googleLoader')
 const {makeDocumentFromDb, addStudentDataToDb, addParentDataToDb, addSupervisorDataToDb, verifyBy, getDocDataFromDb} = require('./mongoDB/docData')
-const {insertSupervisorData, insertStudentData, insertParentData} = require('./google/docs')
-const {sendEmailToSchool, sendEmailToParent, sendEmailToSupervisor} = require('./google/sendEmail')
+const {sendEmailToSchool, sendEmailToParent, sendEmailToSupervisor, sendSuccessEmailToStudent} = require('./google/sendEmail')
 const {addPermActivity} = require('./mongoDB/activity')
 const {generateShareableLink} = require('./google/getLinks')
+const {handleInvalidForm} = require('./helper')
+
+//TODO:       Implement the two other emails to the student: sucessfully verified, and invalid form submission
 //Setup
 require("dotenv").config();
 const app = express();
@@ -37,8 +39,16 @@ app.put('/api/studentFormSubmitted', async (req,res)=>{
   const payload = req.body;
   console.log('Received form submission(student):', payload);
   addStudentDataToDb(payload);
-  sendEmailToSupervisor(payload);
-  sendEmailToParent(payload);
+  try{sendEmailToSupervisor(payload);
+
+  }catch(e){
+    handleInvalidForm(payload.email, 0)
+  }
+  try{sendEmailToParent(payload);    
+  }catch(e){
+    handleInvalidForm(payload.email, 1)
+  }
+  
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',
     receivedData: payload
@@ -47,9 +57,9 @@ app.put('/api/studentFormSubmitted', async (req,res)=>{
 app.put('/api/invalidStudentFormSubmitted', async (req,res)=>{
   const payload = req.body;
   console.log('Received invalid form submission(student):', payload);
-  sendRedoEmailToStudent(payload.email)
+  handleInvalidForm(payload.email, 2)
   res.status(200).json({
-    message: 'Send redo email',
+    message: 'Sending redo email',
     receivedData: payload
   });
 })
@@ -110,7 +120,7 @@ app.put('/api/schoolFormSubmitted', async (req,res)=>{
   });
 })
 // Start server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

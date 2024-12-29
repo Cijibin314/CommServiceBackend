@@ -11,7 +11,7 @@ function load(){
   }
 }
 // Function to generate a shareable link for a specific file
-async function exportDocToPdfAndShare(docId) {
+async function generateShareableLink(docId) {
   await load();
 
   try {
@@ -52,4 +52,4 @@ async function exportDocToPdfAndShare(docId) {
 }
 
 
-module.exports = {exportDocToPdfAndShare}
+module.exports = {generateShareableLink}
