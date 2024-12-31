@@ -1,3 +1,4 @@
+//Note: If having problems with global vars not loading in time, make suer that the editor is fully loaded
 const express = require('express');
 const globalVars = require('./globalVars')
 const cors = require('cors');
@@ -10,14 +11,11 @@ const {makeDocumentFromDb, addStudentDataToDb, addParentDataToDb, addSupervisorD
 const {sendEmailToSchool, sendEmailToParent, sendEmailToSupervisor, sendSuccessEmailToStudent} = require('./google/sendEmail')
 const {addPermActivity} = require('./mongoDB/activity')
 const {generateShareableLink} = require('./google/getLinks')
-const {handleInvalidForm} = require('./helper')
-
-//TODO:       Implement the two other emails to the student: sucessfully verified, and invalid form submission
+const {handleInvalidForm, validGoogleAccount} = require('./helper')
+//Working on a test to see if emails are valid besides for just trying to send to them
 //Setup
 require("dotenv").config();
 const app = express();
-
-
 // Middleware
 async function checkForRequirements(req, res, next) {
   if(globalVars.database){
@@ -39,14 +37,21 @@ app.put('/api/studentFormSubmitted', async (req,res)=>{
   const payload = req.body;
   console.log('Received form submission(student):', payload);
   addStudentDataToDb(payload);
-  try{sendEmailToSupervisor(payload);
 
-  }catch(e){
-    handleInvalidForm(payload.email, 0)
+  const validSupAccount = await validGoogleAccount(payload.SupervisorEmail)
+  const validParAccount = await validGoogleAccount(payload.ParentEmail)
+  if(validSupAccount && validParAccount){
+    console.log("Both emails valid")
+    sendEmailToSupervisor(payload);
+    sendEmailToParent(payload);    
   }
-  try{sendEmailToParent(payload);    
-  }catch(e){
-    handleInvalidForm(payload.email, 1)
+  else if(!validSupAccount){
+    console.log("Sup email invalid")
+    handleInvalidForm(payload.Email, 1)
+  }
+  else{
+    console.log("Par email invalid")
+    handleInvalidForm(payload.Email, 0)
   }
   
   res.status(200).json({
@@ -57,7 +62,8 @@ app.put('/api/studentFormSubmitted', async (req,res)=>{
 app.put('/api/invalidStudentFormSubmitted', async (req,res)=>{
   const payload = req.body;
   console.log('Received invalid form submission(student):', payload);
-  handleInvalidForm(payload.email, 2)
+  console.log("Type: " + typeof payload)
+  handleInvalidForm(payload.Email, 2)
   res.status(200).json({
     message: 'Sending redo email',
     receivedData: payload
@@ -74,7 +80,7 @@ app.put('/api/supervisorFormSubmitted', async (req,res)=>{
     console.log("creating form-s")
      const docId = await makeDocumentFromDb(dateSubmitted)
      const link = await generateShareableLink(docId);
-     sendEmailToSchool(link, docData.studentData.ContactEmail)
+     sendEmailToSchool(link, docData.studentData.Email)
   }else{
     console.log("not yet-s")
   }
@@ -96,7 +102,7 @@ app.put('/api/parentFormSubmitted', async (req,res)=>{
     console.log("creating form-p")
      const docId = await makeDocumentFromDb(dateSubmitted);
      const link = await generateShareableLink(docId);
-     sendEmailToSchool(link, docData.studentData.ContactEmail)
+     sendEmailToSchool(link, docData.studentData.Email)
   }else{
     console.log("not yet-p")
   }
@@ -110,10 +116,15 @@ app.put('/api/schoolFormSubmitted', async (req,res)=>{
   const payload = req.body;
   console.log('Received form submission(school):', payload);
   const dateSubmitted = payload["Datestudentfilledouttheirform"]
-  const docData = await getDocDataFromDb(dateSubmitted);
-  verifyBy(dateSubmitted, "School");
-  addPermActivity(docData)
-  sendSuccessEmailToStudent(docData.studentData.ContactEmail, docData.dateSubmitted)
+  if(payload["Validatethestudent'sform"] === "Valid form"){
+    const docData = await getDocDataFromDb(dateSubmitted);
+    verifyBy(dateSubmitted, "School");
+    addPermActivity(docData)
+    sendSuccessEmailToStudent(docData.studentData.Email, docData.dateSubmitted)
+  }else{
+    console.log("Invalid form")
+    handleInvalidForm(payload.Email, 3)
+  }
   res.status(200).json({
     message: 'Form submitted successfullyyyy!',
     receivedData: payload

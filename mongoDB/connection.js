@@ -11,13 +11,13 @@ async function connect(){
     }
     );
     await client.connect()
-    const database = await client.db("CommServiceData");
-    const activityConnection = await database.collection("Activity");
-    const docDataConnection = await database.collection("DocData")
+    const database = client.db("CommServiceData");
+    const activityConnection = database.collection("Activity");
+    const docDataConnection = database.collection("DocData")
 
-    await globleVars.database.setVal(database);
-    await globleVars.activityConnection.setVal(activityConnection);
-    await globleVars.docDataConnection.setVal(docDataConnection);
+    globleVars.database.setVal(database);
+    globleVars.activityConnection.setVal(activityConnection);
+    globleVars.docDataConnection.setVal(docDataConnection);
     //console.log("studFormConn: " + globleVars.studentFormConnection.getVal())
 
 }

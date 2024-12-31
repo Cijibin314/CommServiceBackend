@@ -2,9 +2,10 @@ require("dotenv").config();
 const { google } = require('googleapis');
 let {oAuth2Client} = require('../globalVars');
 oAuth2Client = oAuth2Client.getVal()
-const {generateShareableLink} = require('./getLinks')
+const {schoolEmail} = require('../globalVars')
 // Define sendEmail function
 async function sendEmail(to, subject, text) {
+  console.log("sending email to: " + to)
   try {
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
 
@@ -38,10 +39,10 @@ async function sendEmail(to, subject, text) {
     console.log('Email sent:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error sending email:', error);
+    return "Invalid Email"
+    //console.error('Error sending email, probably invalid email address:', error);
   }
 }
-
 async function sendEmailToSupervisor(studentData){
   const title = `${studentData.Name} has invited you to sign their community service form as their supervisor`
   const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScOeJ3Kozrzitkd82mTf5emD-wxxu0AD5gxKir-zoLSzuS_pw/viewform?usp=pp_url&entry.171355152="+studentData.DateSubmitted
@@ -55,13 +56,16 @@ async function sendEmailToSupervisor(studentData){
   }
   studentActivity += "</table>"
   const text = `
-  Hi ${studentData.SupervisorEmail},<br>
+  Hi ${studentData.SupervisorEmail},<br><br>
   You have previously participated in a community service activity with ${studentData.Name} as a part of ${studentData.VolunteerOrganization}.<br>
   At Ipswich High School, we require a form to be filled out to show that ${studentData.Name} completed their community service.<br>
   You can fill out this google form to verify that the student has completed the activity: ${googleFormLink}<br>
   The activity is listed as: ${studentActivity}<br>
   ____Bottom Area. To Fill Out____`
-  await sendEmail(studentData.SupervisorEmail, title, text)
+  const res = await sendEmail(studentData.SupervisorEmail, title, text)
+  if(res === "Invalid Email"){
+    return res;
+  }
 }
 async function sendEmailToParent(studentData){
   const title = `${studentData.Name} has invited you to sign their community service form as their parent`
@@ -82,7 +86,10 @@ async function sendEmailToParent(studentData){
   You can fill out this google form to verify that your child has completed the activity: ${googleFormLink}<br>
   The activity is listed as: ${studentActivity} <br>Total Hours: ${studentData.TotalHours}<br>
   ____Bottom Area. To Fill Out____`
-  await sendEmail(studentData.ParentEmail, title, text)
+  const res = await sendEmail(studentData.ParentEmail, title, text)
+  if(res === "Invalid Email"){
+    return res;
+  }
 }
 async function sendEmailToSchool(link, studentEmail){
   const formLink = "___formLink___"
@@ -91,16 +98,17 @@ async function sendEmailToSchool(link, studentEmail){
   Hi,<br>
   A student has previously participated in a community service activity. Their form has been filled out by their parent/gardian and supervisor. The form can be found here: ${link} <br>
   Please assure that the email addresses of the parent and supervisor are valid. Afterwards, please fill out this form: ${formLink} to add their activity permanently<br>
-  If you believe that the studnet has not filled out a valid form, then please email them at ${studentEmail}<br>
+  If you believe that the studnet has not filled out a valid form, then please email them at ${studentEmail} , but still fill out the form<br>
   ____Bottom Area. To Fill Out____`
-  await sendEmail("coltonflather@gmail.com", title, text)
+  await sendEmail(schoolEmail, title, text)
 }
 async function sendRedoEmail(email, error){
+  console.log("sending redo email")
   const title = `Your recently submitted form is inalid`
   const text = `
   Hi,<br>
-  You recently sumbitted your form for community service. However, the following error ocurred with your form: 
-  ${error}
+  You recently sumbitted your form for community service. However, the following error ocurred with your form: <br><br>
+  ${error}<br>
   ____Bottom Area. To Fill Out____`
   await sendEmail(email, title, text)
 }

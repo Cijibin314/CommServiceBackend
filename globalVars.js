@@ -18,4 +18,5 @@ let database = new globleVar("database")
 let activityConnection = new globleVar("activityConnection")
 let docDataConnection = new globleVar("docDataConnection")
 let oAuth2Client = new globleVar("oAuth2Client")
-module.exports = {database, activityConnection, oAuth2Client, docDataConnection};
+const schoolEmail = "coltonflather@gmail.com"
+module.exports = {database, activityConnection, oAuth2Client, docDataConnection ,schoolEmail};

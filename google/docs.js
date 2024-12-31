@@ -118,7 +118,8 @@ async function insertSupervisorData(docId, docData){
     await insertTextByIndex(docId, supervisorData["PrintFullName(validassignature)"], sIndex);
     //Date of signature
     const dIndex = sIndex + supervisorData["PrintFullName(validassignature)"].length + 1 + 6;//6 is "Date: ".length
-    await insertTextByIndex(docId, docData["verifiedBySupervisor"], dIndex);
+    const dateString = new Date(docData["verifiedBySupervisor"]).format('DD/MM/YYYY')
+    await insertTextByIndex(docId, dateString, dIndex);
   }catch(e){
     console.log("Error propably because document has been tampered")
     console.log("Error inserting supervisor data: " + e)
@@ -193,6 +194,33 @@ async function insertParentData(docId, docData){
   await insertTextByIndex(docId, docData.parentData["PrintFullName(validassignature)"], sIndex);
   //Date of signature
   const dIndex = sIndex + docData.parentData["PrintFullName(validassignature)"].length + 1 + 6;//6 is "Date: ".length
-  await insertTextByIndex(docId, docData["verifiedByParent"], dIndex);
+  const dateString = new Date(docData["verifiedByParent"]).format('DD/MM/YYYY')
+    await insertTextByIndex(docId, dateString, dIndex);
 }
-module.exports = {insertParentData, insertSupervisorData, insertStudentData, makeNewDocument}
+async function permissionsVerification(docId, email){
+  await load();
+  const permission = await drive.permissions.create({
+    fileId: docId,
+    requestBody:{
+      role: 'reader',
+      type: 'user',
+      emailAddress: email,
+    },
+    sendNotificationEmail: false
+  })
+  await drive.permissions.delete({
+    fileId: docId,
+    permissionId: permission.data.id,
+  })
+}
+async function deleteDocument(docId){
+  try{
+    await drive.files.delete({
+      fileId: docId
+    })
+    console.log("Deleted doc with id: " + docId)
+  }catch(e){
+    console.log("Error deleting doc of id: " + docId)
+  }
+}
+module.exports = {insertParentData, insertSupervisorData, insertStudentData, makeNewDocument, permissionsVerification, deleteDocument}
