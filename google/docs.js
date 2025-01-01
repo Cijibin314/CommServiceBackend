@@ -118,6 +118,8 @@ async function insertSupervisorData(docId, docData){
     await insertTextByIndex(docId, supervisorData["PrintFullName(validassignature)"], sIndex);
     //Date of signature
     const dIndex = sIndex + supervisorData["PrintFullName(validassignature)"].length + 1 + 6;//6 is "Date: ".length
+    console.log("sup date: " + docData["verifiedBySupervisor"])
+    console.log("type of it: " + typeof docData["verifiedBySupervisor"])
     const dateString = new Date(docData["verifiedBySupervisor"]).format('DD/MM/YYYY')
     await insertTextByIndex(docId, dateString, dIndex);
   }catch(e){

@@ -74,7 +74,7 @@ app.put('/api/supervisorFormSubmitted', async (req,res)=>{
   console.log('Received form submission(supervisor):', payload);
   const dateSubmitted = payload["Datestudentfilledouttheirform"]
   const docData = await getDocDataFromDb(dateSubmitted);
-  verifyBy(dateSubmitted, "Supervisor");
+  await verifyBy(dateSubmitted, "Supervisor");
   await addSupervisorDataToDb(dateSubmitted, payload);
   if(docData.verifiedByParent && !docData.formCreated){
     console.log("creating form-s")
@@ -93,7 +93,7 @@ app.put('/api/parentFormSubmitted', async (req,res)=>{
   const payload = req.body;
   console.log('Received form submission(parent):', payload);
   const dateSubmitted = payload["Datestudentfilledouttheirform"]
-  verifyBy(dateSubmitted, "Parent");
+  await verifyBy(dateSubmitted, "Parent");
   await addParentDataToDb(dateSubmitted, payload);
   const docData = await getDocDataFromDb(dateSubmitted);
   console.log("docData: ", docData)
@@ -118,7 +118,7 @@ app.put('/api/schoolFormSubmitted', async (req,res)=>{
   const dateSubmitted = payload["Datestudentfilledouttheirform"]
   if(payload["Validatethestudent'sform"] === "Valid form"){
     const docData = await getDocDataFromDb(dateSubmitted);
-    verifyBy(dateSubmitted, "School");
+    await verifyBy(dateSubmitted, "School");
     addPermActivity(docData)
     sendSuccessEmailToStudent(docData.studentData.Email, docData.dateSubmitted)
   }else{
