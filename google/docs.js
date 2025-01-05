@@ -94,42 +94,9 @@ async function findTextIndex(docId, textToFind){
   }
   return -1;
 }
-async function insertSupervisorData(docId, docData){
-  const supervisorData = docData["supervisorData"];
-  await load()
-  console.log("Inserting supervisor data: " + supervisorData)
-  //await insertTextByIndex(docId, "<<<"+"h"+">>>", await findTextIndex(docId, prompt))
-  //Name
-  try{
-    let prompt = "Print Name of Supervisor: "//"Print Name of Supervisor: "
-    const nIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, supervisorData["Name"], nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
-    //Phone
-    prompt = "Phone of Supervisor: "
-    const pIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, supervisorData["Phone"], pIndex);
-    //Email
-    prompt = "Email of Supervisor: "
-    const eIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, supervisorData["Email"], eIndex);
-    //Signature
-    prompt = "Signature of Supervisor: "
-    const sIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, supervisorData["PrintFullName(validassignature)"], sIndex);
-    //Date of signature
-    const dIndex = sIndex + supervisorData["PrintFullName(validassignature)"].length + 1 + 6;//6 is "Date: ".length
-    console.log("sup date: " + docData["verifiedBySupervisor"])
-    console.log("type of it: " + typeof docData["verifiedBySupervisor"])
-    const dateString = new Date(docData["verifiedBySupervisor"]).format('DD/MM/YYYY')
-    await insertTextByIndex(docId, dateString, dIndex);
-  }catch(e){
-    console.log("Error propably because document has been tampered")
-    console.log("Error inserting supervisor data: " + e)
-  }
-}
 async function insertStudentData(docId, docData){
   await load()
-  console.log("Inserting studenttttt data: " + docData)
+  console.log("Inserting studenttttt data: " + JSON.stringify(docData))
   //Name
   try{
     const studentData = docData["studentData"];
@@ -140,7 +107,7 @@ async function insertStudentData(docId, docData){
     //Email
     prompt = "Contact Email: "
     const eIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, studentData["ContactEmail"], eIndex);
+    await insertTextByIndex(docId, studentData["Email"], eIndex);
     //Class
     prompt = "Class of: "
     const cIndex = await findTextIndex(docId, prompt);
@@ -152,7 +119,7 @@ async function insertStudentData(docId, docData){
     //Total Hours
     prompt = "Total Hours from above: "
     const hIndex = await findTextIndex(docId, prompt);
-    await insertTextByIndex(docId, studentData["TotalHours"], hIndex);
+    await insertTextByIndex(docId, JSON.stringify(studentData["TotalHours(#,nounit)"]), hIndex);
     //Description of Comm Service
     prompt = "Brief description of community service: "
     const dIndex = await findTextIndex(docId, prompt);
@@ -189,6 +156,33 @@ async function insertStudentData(docId, docData){
     console.log("Error inserting supervisor data: " + e)
   }
 }
+async function insertSupervisorData(docId, docData){
+  const supervisorData = docData["supervisorData"];
+  await load()
+  console.log("Inserting supervisor data: " + JSON.stringify(supervisorData))
+  //await insertTextByIndex(docId, "<<<"+"h"+">>>", await findTextIndex(docId, prompt))
+  //Name
+  try{
+    let prompt = "Print Name of Supervisor: "//"Print Name of Supervisor: "
+    const nIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, supervisorData["Name"], nIndex);  //await is needed because then they would inser on the wonng indexes because it would be the index before the other parts have been added
+    //Phone
+    prompt = "Phone of Supervisor: "
+    const pIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, supervisorData["Phone"], pIndex);
+    //Signature
+    prompt = "Signature of Supervisor: "
+    const sIndex = await findTextIndex(docId, prompt);
+    await insertTextByIndex(docId, supervisorData["PrintFullName(validassignature)"], sIndex);
+    //Date of signature
+    const dIndex = sIndex + supervisorData["PrintFullName(validassignature)"].length + 1 + 6;//6 is "Date: ".length
+   const dateString = new Date(docData["verifiedBySupervisor"]).toString()
+    await insertTextByIndex(docId, dateString, dIndex);
+  }catch(e){
+    console.log("Error propably because document has been tampered")
+    console.log("Error inserting supervisor data: " + e)
+  }
+}
 async function insertParentData(docId, docData){
   //Signature
   let prompt = "Signature of Parent: "
@@ -196,7 +190,7 @@ async function insertParentData(docId, docData){
   await insertTextByIndex(docId, docData.parentData["PrintFullName(validassignature)"], sIndex);
   //Date of signature
   const dIndex = sIndex + docData.parentData["PrintFullName(validassignature)"].length + 1 + 6;//6 is "Date: ".length
-  const dateString = new Date(docData["verifiedByParent"]).format('DD/MM/YYYY')
+  let dateString = new Date(docData["verifiedByParent"]).toString()
     await insertTextByIndex(docId, dateString, dIndex);
 }
 async function permissionsVerification(docId, email){

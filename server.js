@@ -100,8 +100,8 @@ app.put('/api/parentFormSubmitted', async (req,res)=>{
   if(docData.verifiedBySupervisor && !docData.formCreated){
     console.log("creating form-p")
      const docId = await makeDocumentFromDb(dateSubmitted);
-     const link = await generateShareableLink(docId);
-     sendEmailToSchool(link, docData.studentData.Email)
+    // const link = await generateShareableLink(docId);
+     //sendEmailToSchool(link, docData.studentData.Email)
   }else{
     console.log("not yet-p")
   }

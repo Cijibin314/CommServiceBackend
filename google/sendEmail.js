@@ -113,10 +113,12 @@ async function sendRedoEmail(email, error){
   await sendEmail(email, title, text)
 }
 async function sendSuccessEmailToStudent(email, dateSubmitted){
+  const webpageLink = "___webpage link___"
   const title = `Form success!`
   const text = `
   Hi,<br>
   Your form submitted at ${dateSubmitted} has been sucessfully added<br>
+  Go here to view your activity so far: ${webpageLink}<br>
   ____Bottom Area. To Fill Out____`
   await sendEmail(email, title, text)
 }
