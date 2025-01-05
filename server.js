@@ -12,7 +12,6 @@ const {sendEmailToSchool, sendEmailToParent, sendEmailToSupervisor, sendSuccessE
 const {addPermActivity} = require('./mongoDB/activity')
 const {generateShareableLink} = require('./google/getLinks')
 const {handleInvalidForm, validGoogleAccount} = require('./helper')
-//Working on a test to see if emails are valid besides for just trying to send to them
 //Setup
 require("dotenv").config();
 const app = express();
@@ -119,7 +118,8 @@ app.put('/api/schoolFormSubmitted', async (req,res)=>{
   if(payload["Validatethestudent'sform"] === "Valid form"){
     const docData = await getDocDataFromDb(dateSubmitted);
     await verifyBy(dateSubmitted, "School");
-    addPermActivity(docData)
+    const link = await generateShareableLink(docId)
+    addPermActivity(docData.studentData.Email, link,docData.studentData["TotalHours(#,nounit)"])
     sendSuccessEmailToStudent(docData.studentData.Email, docData.dateSubmitted)
   }else{
     console.log("Invalid form")

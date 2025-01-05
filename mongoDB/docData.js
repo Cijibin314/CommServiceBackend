@@ -67,9 +67,6 @@ async function getDocDataFromDb(dateSubmitted){
         console.log("No forms found");
     }
 }
-async function addPermActivity(studentData){
-
-}
 // setTimeout(()=>{
 //     insertStudentDataFromDb("67699d4eafe7e256ae6c953f");
 // },3000)
@@ -79,6 +76,5 @@ module.exports = {
     verifyBy, 
     addParentDataToDb, 
     addSupervisorDataToDb, 
-    addPermActivity,
     getDocDataFromDb
 };
